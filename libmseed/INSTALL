@@ -1,0 +1,11 @@
+
+A simple 'make' on most Unix-like systems should build the library.
+If GNU gcc is available 'make gcc' can also be used.
+
+The library requires that C99 integer types are available on the
+target computer.  Specifically the int8_t, int16_t, int32_t and
+and their unsigned counterpart types.  Furthermore a 64-bit signed
+integer is required.
+
+On a Win32 platform the nmake compatible Makefile.win can be used.
+
