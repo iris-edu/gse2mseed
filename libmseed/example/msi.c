@@ -8,7 +8,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center.
  *
- * modified 2005.117
+ * modified 2005.201
  ***************************************************************************/
 
 #include <stdio.h>
@@ -28,7 +28,7 @@ static void addfile (char *filename);
 static void usage (void);
 static void term_handler (int sig);
 
-#define VERSION LIBMSEED_VERSION
+#define VERSION "[libmseed " LIBMSEED_VERSION " example]"
 #define PACKAGE "msi"
 
 static flag    verbose      = 0;
@@ -39,6 +39,7 @@ static flag    basicsum     = 0;    /* Controls printing of basic summary */
 static flag    tracegapsum  = 0;    /* Controls printing of trace or gap list */
 static flag    tracegaponly = 0;    /* Controls printing of trace or gap list only */
 static flag    tracegaps    = 0;    /* Controls printing of gaps with a trace list */
+static flag    timeformat   = 0;    /* Time string format for trace or gap lists */
 static double  mingap       = 0;    /* Minimum gap/overlap seconds when printing gap list */
 static double *mingapptr    = NULL;
 static double  maxgap       = 0;    /* Maximum gap/overlap seconds when printing gap list */
@@ -272,11 +273,11 @@ main (int argc, char **argv)
       
       if ( tracegapsum == 1 || tracegaponly == 1 )
 	{
-	  mst_printtracelist (mstg, 1, tracegaps);
+	  mst_printtracelist (mstg, timeformat, 1, tracegaps);
 	}
       if ( tracegapsum == 2 || tracegaponly == 2 )
 	{
-	  mst_printgaplist (mstg, mingapptr, maxgapptr);
+	  mst_printgaplist (mstg, timeformat, mingapptr, maxgapptr);
 	}
     }
   
@@ -361,6 +362,10 @@ parameter_proc (int argcount, char **argvec)
       else if (strcmp (argvec[optind], "-H") == 0)
 	{
 	  traceheal = 1;
+	}
+      else if (strcmp (argvec[optind], "-tf") == 0)
+	{
+	  timeformat = strtol (getoptval(argcount, argvec, optind++), NULL, 10);
 	}
       else if (strcmp (argvec[optind], "-ts") == 0)
 	{
@@ -561,6 +566,8 @@ usage (void)
 	   " -min secs    Only report gaps/overlaps larger or equal to specified seconds\n"
 	   " -max secs    Only report gaps/overlaps smaller or equal to specified seconds\n"
 	   " -H           Heal trace segments, for out of time order data\n"
+	   " -tf format   Specify a time string format for trace and gap lists\n"
+	   "                format: 0 = SEED time, 1 = ISO time, 2 = epoch time\n"
 	   " -ts time     Limit to records that start after time\n"
 	   " -te time     Limit to records that end before time\n"
 	   "                time format: 'YYYY[,DDD,HH,MM,SS,FFFFFF]' delimiters: [,:.]\n"

@@ -32,8 +32,8 @@ extern "C" {
 #include <inttypes.h>
 #include <sys/types.h>
 
-#define LIBMSEED_VERSION "1.0pre3"
-#define LIBMSEED_RELEASE "2005.117"
+#define LIBMSEED_VERSION "1.0"
+#define LIBMSEED_RELEASE "2005.201"
 
 #define MINRECLEN   256      /* Minimum Mini-SEED record length, 2^8 bytes */
 #define MAXRECLEN   1048576  /* Maximum Mini-SEED record length, 2^20 bytes */
@@ -54,7 +54,7 @@ extern "C" {
 #define MS_UNKNOWNFORMAT   -3        /* Unknown data encoding format */
 #define MS_SAMPMISMATCH    -4        /* Num. samples in header is not the number unpacked */
 #define MS_BADSAMPCOUNT    -5        /* Sample count is bad, negative? */
-#define MS_STBADLASTMATCH  -6        /* Steim, last sample does not match */
+#define MS_STBADLASTMATCH  -6        /* Steim, last sample != reverse integration constant */
 #define MS_STBADCOMPFLAG   -7        /* Steim, invalid compression flag(s) */
 
 /* Define the high precision time tick interval as 1/modulus seconds */
@@ -66,8 +66,8 @@ extern "C" {
 #define HPTERROR -2145916800000000LL
 
 /* Macros to scale between Unix/POSIX epoch time & high precision time */
-#define MS_EPOCH2HPTIME(X) X * (hptime_t) HPTMODULUS;
-#define MS_HPTIME2EPOCH(X) X / HPTMODULUS;
+#define MS_EPOCH2HPTIME(X) X * (hptime_t) HPTMODULUS
+#define MS_HPTIME2EPOCH(X) X / HPTMODULUS
 
 /* Macro to test a character for data record indicators */
 #define MS_ISDATAINDICATOR(X) (X=='D' || X=='R' || X=='Q')
@@ -390,8 +390,10 @@ extern Trace*       mst_addtracetogroup (TraceGroup *mstg, Trace *mst);
 extern int          mst_heal (TraceGroup *mstg, double timetol, double sampratetol);
 extern int          mst_groupsort (TraceGroup *mstg);
 extern char *       mst_srcname (Trace *mst, char *srcname);
-extern void         mst_printtracelist (TraceGroup *mstg, flag details, flag gaps);
-extern void         mst_printgaplist (TraceGroup *mstg, double *mingap, double *maxgap);
+extern void         mst_printtracelist (TraceGroup *mstg, flag timeformat,
+					flag details, flag gaps);
+extern void         mst_printgaplist (TraceGroup *mstg, flag timeformat,
+				      double *mingap, double *maxgap);
 extern int          mst_pack (Trace *mst, void (*record_handler) (char *, int),
 			      int reclen, flag encoding, flag byteorder,
 			      int *packedsamples, flag flush, flag verbose,

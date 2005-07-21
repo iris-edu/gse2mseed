@@ -1,3 +1,31 @@
+2005.201: 1.0 Final
+	- Change version of example programs so they don't conflict
+	with future, non-example versions.
+	- Generate links to man pages and tar up a source package.
+	- No library code changes since pre6.
+
+2005.173: 1.0pre6
+	- Set MSrecord->reclen to -1 in msr_init() to trigger
+	the default value in msr_pack(), etc.
+
+2005.157: 1.0pre5
+	- Fix off-by-one error in number of samples for overlaps.
+
+2005.146: 1.0pre4
+	- Add check for an UNPACK_DATA_FORMAT_FALLBACK environment
+	variable that defines a fallback format for when no encoding
+	format is specified in the data record (no blkt 1000).
+	- Set a default format fallback encoding of 10 (Steim 1).
+	If this default gets invoked, the byteorder will fallback
+	to big-endian if it has not been specified.
+	- Change the MS_EPOCH2HPTIME(X) and MS_HPTIME2EPOCH(X)
+	macro definitions to not include a semi-colon, duh.
+	- Add a 'timeformat' flag to the mst_printtracelist() and
+	mst_printgaplist() functions that indicates which format
+	the time stamp will be in: SEED time, ISO time or epoch.
+	- Add an option to msi to specify the time format in trace
+	and gap listings.
+
 2005.117: 1.0pre3
 	- Add check for the following environment variable to force
 	the data encoding format when unpacking:

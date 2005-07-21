@@ -9,7 +9,7 @@
  *
  * Written by Chad Trabant, ORFEUS/EC-Project MEREDIAN
  *
- * modified 2005.117
+ * modified 2005.201
  ***************************************************************************/
 
 #include <stdio.h>
@@ -21,7 +21,7 @@
 
 #include <libmseed.h>
 
-#define VERSION LIBMSEED_VERSION
+#define VERSION "[libmseed " LIBMSEED_VERSION " example]"
 #define PACKAGE "msrepack"
 
 static short int verbose   = 0;

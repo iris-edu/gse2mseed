@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center
  *
- * modified: 2005.091
+ * modified: 2005.157
  ***************************************************************************/
 
 #include <stdio.h>
@@ -852,9 +852,15 @@ mst_srcname (Trace *mst, char *srcname)
  * 0 and the previous trace matches (srcname & samprate) include the
  * gap between the endtime of the last trace and the starttime of the
  * current trace.
+ *
+ * The timeformat flag can either be:
+ * 0 : SEED time format (year, day-of-year, hour, min, sec)
+ * 1 : ISO time format (year, month, day, hour, min, sec)
+ * 2 : Epoch time, seconds since the epoch
  ***************************************************************************/
 void
-mst_printtracelist ( TraceGroup *mstg, flag details, flag gaps )
+mst_printtracelist ( TraceGroup *mstg, flag timeformat,
+		     flag details, flag gaps )
 {
   Trace *mst = 0;
   char srcname[50];
@@ -892,11 +898,28 @@ mst_printtracelist ( TraceGroup *mstg, flag details, flag gaps )
     {
       mst_srcname (mst, srcname);
       
-      if ( ms_hptime2seedtimestr (mst->starttime, stime) == NULL )
-	fprintf (stderr, "Error converting trace start time for %s\n", srcname);
-      
-      if ( ms_hptime2seedtimestr (mst->endtime, etime) == NULL )
-	fprintf (stderr, "Error converting trace end time for %s\n", srcname);
+      /* Create formatted time strings */
+      if ( timeformat == 2 )
+	{
+	  snprintf (stime, sizeof(stime), "%.6f", (double) MS_HPTIME2EPOCH(mst->starttime) );
+	  snprintf (etime, sizeof(etime), "%.6f", (double) MS_HPTIME2EPOCH(mst->endtime) );
+	}
+      else if ( timeformat == 1 )
+	{
+	  if ( ms_hptime2isotimestr (mst->starttime, stime) == NULL )
+	    fprintf (stderr, "Error converting trace start time for %s\n", srcname);
+	  
+	  if ( ms_hptime2isotimestr (mst->endtime, etime) == NULL )
+	    fprintf (stderr, "Error converting trace end time for %s\n", srcname);
+	}
+      else
+	{
+	  if ( ms_hptime2seedtimestr (mst->starttime, stime) == NULL )
+	    fprintf (stderr, "Error converting trace start time for %s\n", srcname);
+	  
+	  if ( ms_hptime2seedtimestr (mst->endtime, etime) == NULL )
+	    fprintf (stderr, "Error converting trace end time for %s\n", srcname);
+	}
       
       /* Print trace info at varying levels */
       if ( gaps > 0 )
@@ -921,17 +944,17 @@ mst_printtracelist ( TraceGroup *mstg, flag details, flag gaps )
 	    snprintf (gapstr, sizeof(gapstr), "%-4.4g", gap);
 	  
 	  if ( details <= 0 )
-	    printf ("%-15.15s %-24.24s %-24.24s %-4s\n",
+	    printf ("%-15s %-24s %-24s %-4s\n",
 		    srcname, stime, etime, gapstr);
 	  else
-	    printf ("%-15.15s %-24.24s %-24.24s %-s %-4.4g %-d\n",
+	    printf ("%-15s %-24s %-24s %-s %-4.4g %-d\n",
 		    srcname, stime, etime, gapstr, mst->samprate, mst->samplecnt);
 	}
       else if ( details > 0 && gaps <= 0 )
-	printf ("%-15.15s %-24.24s %-24.24s %-4.4g %-d\n",
+	printf ("%-15s %-24s %-24s %-4.4g %-d\n",
 		srcname, stime, etime, mst->samprate, mst->samplecnt);
       else
-	printf ("%-15.15s %-24.24s %-24.24s\n", srcname, stime, etime);
+	printf ("%-15s %-24s %-24s\n", srcname, stime, etime);
       
       if ( gaps > 0 )
 	{
@@ -963,9 +986,15 @@ mst_printtracelist ( TraceGroup *mstg, flag details, flag gaps )
  *
  * If mingap and maxgap are not NULL their values will be enforced and
  * only gaps/overlaps matching their implied criteria will be printed.
+ *
+ * The timeformat flag can either be:
+ * 0 : SEED time format (year, day-of-year, hour, min, sec)
+ * 1 : ISO time format (year, month, day, hour, min, sec)
+ * 2 : Epoch time, seconds since the epoch
  ***************************************************************************/
 void
-mst_printgaplist (TraceGroup *mstg, double *mingap, double *maxgap)
+mst_printgaplist (TraceGroup *mstg, flag timeformat,
+		  double *mingap, double *maxgap)
 {
   Trace *mst, *pmst;
   char src1[30], src2[30];
@@ -1032,6 +1061,8 @@ mst_printgaplist (TraceGroup *mstg, double *mingap, double *maxgap)
 	      
 	      if ( gap > 0.0 )
 		nsamples -= 1.0;
+	      else
+		nsamples += 1.0;
 	      
 	      /* Fix up gap display */
 	      if ( gap >= 86400.0 || gap <= -86400.0 )
@@ -1041,10 +1072,30 @@ mst_printgaplist (TraceGroup *mstg, double *mingap, double *maxgap)
 	      else
 		snprintf (gapstr, sizeof(gapstr), "%-4.4g", gap);
 	      
-	      ms_hptime2seedtimestr (mst->endtime, time1);
-	      ms_hptime2seedtimestr (mst->next->starttime, time2);
+	      /* Create formatted time strings */
+	      if ( timeformat == 2 )
+		{
+		  snprintf (time1, sizeof(time1), "%.6f", (double) MS_HPTIME2EPOCH(mst->endtime) );
+		  snprintf (time2, sizeof(time2), "%.6f", (double) MS_HPTIME2EPOCH(mst->next->starttime) );
+		}
+	      else if ( timeformat == 1 )
+		{
+		  if ( ms_hptime2isotimestr (mst->endtime, time1) == NULL )
+		    fprintf (stderr, "Error converting trace end time for %s\n", src1);
+		  
+		  if ( ms_hptime2isotimestr (mst->next->starttime, time2) == NULL )
+		    fprintf (stderr, "Error converting next trace start time for %s\n", src1);
+		}
+	      else
+		{
+		  if ( ms_hptime2seedtimestr (mst->endtime, time1) == NULL )
+		    fprintf (stderr, "Error converting trace end time for %s\n", src1);
+		  
+		  if ( ms_hptime2seedtimestr (mst->next->starttime, time2) == NULL )
+		    fprintf (stderr, "Error converting next trace start time for %s\n", src1);
+		}
 	      
-	      printf ("%-15.15s %-24.24s %-24.24s %-4s  %-.8g\n",
+	      printf ("%-15s %-24s %-24s %-4s  %-.8g\n",
 		      src1, time1, time2, gapstr, nsamples);
 	      
 	      gapcnt++;

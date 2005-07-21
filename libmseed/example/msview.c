@@ -1,14 +1,14 @@
 /***************************************************************************
  * msview.c
  *
- * A simple example of using the Mini-SEED record library.
+ * A simple example of using libmseed.
  *
  * Opens a user specified file, parses the Mini-SEED records and prints
  * details for each record.
  *
  * Written by Chad Trabant, ORFEUS/EC-Project MEREDIAN
  *
- * modified 2005.025
+ * modified 2005.201
  ***************************************************************************/
 
 #include <stdio.h>
@@ -20,7 +20,7 @@
 
 #include <libmseed.h>
 
-#define VERSION LIBMSEED_VERSION
+#define VERSION "[libmseed " LIBMSEED_VERSION " example]"
 #define PACKAGE "msview"
 
 static short int verbose   = 0;

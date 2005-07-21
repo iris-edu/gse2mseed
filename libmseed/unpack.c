@@ -13,7 +13,7 @@
  *   ORFEUS/EC-Project MEREDIAN
  *   IRIS Data Management Center
  *
- * modified: 2005.117
+ * modified: 2005.146
  ***************************************************************************/
 
 #include <stdio.h>
@@ -31,11 +31,12 @@ static int check_environment (int verbose);
 /* Header and data byte order flags controlled by environment variables */
 /* -2 = not checked, -1 = checked but not set, or 0 = LE and 1 = BE */
 static flag headerbyteorder = -2;
-static flag databyteorder = -2;
+static flag databyteorder   = -2;
 
-/* Data encoding format controlled by environment variable */
+/* Data encoding format/fallback controlled by environment variable */
 /* -2 = not checked, -1 = checked but not set, or = encoding */
-static int encodingformat = -2;
+static int encodingformat   = -2;
+static int encodingfallback = -2;
 
 /***************************************************************************
  * msr_unpack:
@@ -113,7 +114,8 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
   /* Check environment variables if necessary */
   if ( headerbyteorder == -2 ||
        databyteorder == -2 ||
-       encodingformat == -2 )
+       encodingformat == -2 ||
+       encodingfallback == -2 )
     if ( check_environment(verbose) )
       return NULL;
   
@@ -600,7 +602,19 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
     {
       msr->encoding = encodingformat;
     }
-
+  
+  /* Use encoding format fallback if defined and no encoding is set,
+   * also make sure the byteorder is set by default to big endian */
+  if ( encodingfallback >= 0 && msr->encoding == -1 )
+    {
+      msr->encoding = encodingfallback;
+      
+      if ( msr->byteorder == -1 )
+	{
+	  msr->byteorder = 1;
+	}
+    }
+  
   /* Unpack the data samples if requested */
   if ( dataflag && msr->samplecnt > 0 )
     {
@@ -916,6 +930,27 @@ check_environment (int verbose)
 	  encodingformat = -1;
 	}
     }
-
+  
+  /* Read possible environmental variable to be used as a fallback encoding format */
+  if ( encodingfallback == -2 )
+    {
+      if ( (envvariable = getenv("UNPACK_DATA_FORMAT_FALLBACK")) )
+	{
+	  encodingfallback = (int) strtol (envvariable, NULL, 10);
+	  
+	  if ( encodingfallback < 0 || encodingfallback > 33 )
+	    {
+	      fprintf (stderr, "Environment variable UNPACK_DATA_FORMAT_FALLBACK set to invalid value: '%d'\n", encodingfallback);
+	      return -1;
+	    }
+	  else if ( verbose > 2 )
+	    fprintf (stderr, "UNPACK_DATA_FORMAT_FALLBACK, unpacking data in encoding format %d\n", encodingfallback);
+	}
+      else
+	{
+	  encodingfallback = 10;  /* Default fallback is Steim-1 encoding */
+	}
+    }
+  
   return 0;
 } /* End of check_environment() */

@@ -1,4 +1,4 @@
-.TH MSR_PACK 3 2004/11/22 "Libmseed API"
+.TH MSR_PACK 3 2005/05/26 "Libmseed API"
 .SH DESCRIPTION
 Packing of Mini-SEED records.
 
@@ -79,6 +79,21 @@ blockettes, in a MSrecord structure into the Mini-SEED record at
 MSrecord.record.  This is useful for re-packing record headers.  The
 \fIverbose\fP flag controls verbosity, a value of zero will result in
 no diagnostic output.
+
+.SH ENVIRONMENT VARIABLES
+The following environment variables effect the packing of Mini-SEED:
+
+.nf
+PACK_HEADER_BYTEORDER
+PACK_DATA_BYTEORDER
+.fi
+
+The PACK_HEADER_BYTEORDER and PACK_DATA_BYTEORDER variables force the
+byte order of the header and data respectively.  They could be set to
+either 0 (little endian) or 1 (big endian).  Normally the byte order
+of the header and data is determined by the byteorder flag of the
+MSrecord, this capability is included to support any combination of
+byte orders in a generalized way.
 
 .SH RETURN VALUES
 \fBmsr_pack\fP returns the number records created on success and -1 on

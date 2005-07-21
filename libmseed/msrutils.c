@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, ORFEUS/EC-Project MEREDIAN
  *
- * modified: 2005.091
+ * modified: 2005.173
  ***************************************************************************/
 
 #include <stdio.h>
@@ -59,6 +59,7 @@ msr_init ( MSrecord *msr )
   msr->fsdh = fsdh;
   msr->datasamples = datasamples;
   
+  msr->reclen = -1;
   msr->samplecnt = -1;
   msr->byteorder = -1;
   msr->encoding = -1;

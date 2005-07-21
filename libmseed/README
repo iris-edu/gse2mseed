@@ -4,11 +4,11 @@
 The Mini-SEED library provides a framework for manipulation of SEED
 data records including the unpacking and packing of data records.
 Functionality is also included for managing waveform data as
-continuous traces.  All aspects of SEED 2.4 data records are supported
-with the following exceptions: Blockette 2000 opaque data which has
-an unknown data structure by definition and Blockette 405 which
-depends on full SEED (SEED including full ASCII headers) for a full
-data description.
+continuous traces.  All structures of SEED 2.4 data records are
+supported with the following exceptions: Blockette 2000 opaque data
+which has an unknown data structure by definition and Blockette 405
+which depends on full SEED (SEED including full ASCII headers) for a
+full data description.
 
 The library has been tested on Linux, Mac OSX (Darwin), and Solaris.
 

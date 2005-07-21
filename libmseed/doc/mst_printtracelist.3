@@ -1,4 +1,4 @@
-.TH MST_PRINT 3 2005/03/10 "Libmseed API"
+.TH MST_PRINT 3 2005/05/26 "Libmseed API"
 .SH DESCRIPTION
 Printing of Trace information.
 
@@ -6,12 +6,13 @@ Printing of Trace information.
 .nf
 .B #include <libmseed.h>
 
-.BI "void   \fBmst_printtracelist\fP ( TraceGroup *" mstg ", flag " details ", flag " gaps " );
+.BI "void   \fBmst_printtracelist\fP ( TraceGroup *" mstg ", flag " timeformat ",
+.BI "                            flag " details ", flag " gaps " );
 
-.BI "void   \fBmst_printgaplist\fP ( TraceGroup *" msgt ", double *" mingap ",
-.BI "                          double *" maxgap " );
+.BI "void   \fBmst_printgaplist\fP ( TraceGroup *" msgt ", flag " timeformat ",
+.BI "                          double *" mingap ", double *" maxgap " );
 
-.BI "char  *\fBmst_srcname\fP ( Trace *" mst ", char *" srcname " );
+.BI "char  *\fBmst_srcname\fP ( Trace *" mst ", char *" srcname " );"
 .fi
 
 .SH DESCRIPTION
@@ -25,6 +26,16 @@ the previous Trace (if the source name matches) is printed.
 Trace segments in the given TraceGroup to stdout.  If \fImingap\fP or
 \fImaxgap\fP is not NULL their values will be enforced and only
 gaps/overlaps matching their implied criteria will be printed.
+
+The \fItimeformat\fP argument for both \fBmst_printtracelist\fP and
+\fBmst_printgaplist\fP controls the format of the resulting time
+strings.  Possible formats are:
+
+.nf
+0 : SEED time format (2005,146,00:00:00.000000)
+1 : ISO time format (2005-05-26T00:00:00.000000)
+2 : Epoch time, seconds since the epoch (1117065600.00000000)
+.fi
 
 Both \fBmst_printtracelist\fP and \fBmst_printgaplist\fP represent
 time overlaps as negative gaps.
