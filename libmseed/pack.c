@@ -7,7 +7,7 @@
  * Written by Chad Trabant,
  *   IRIS Data Management Center
  *
- * modified: 2005.117
+ * modified: 2005.203
  ***************************************************************************/
 
 #include <stdio.h>
@@ -234,7 +234,7 @@ msr_pack ( MSrecord * msr, void (*record_handler) (char *, int),
       if ( verbose > 2 )
 	fprintf (stderr, "Adding 1000 Blockette\n");
       
-      if ( ! msr_addblockette (msr, (char *) &blkt1000, sizeof(struct blkt_1000_s), 1000) )
+      if ( ! msr_addblockette (msr, (char *) &blkt1000, sizeof(struct blkt_1000_s), 1000, 0) )
 	{
 	  fprintf (stderr, "msr_pack(): Error adding 1000 Blockette\n");
 	  return -1;

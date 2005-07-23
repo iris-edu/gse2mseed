@@ -13,7 +13,7 @@
  *   ORFEUS/EC-Project MEREDIAN
  *   IRIS Data Management Center
  *
- * modified: 2005.146
+ * modified: 2005.203
  ***************************************************************************/
 
 #include <stdio.h>
@@ -225,7 +225,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	  
 	  blkt_link = msr_addblockette (msr, record + blkt_offset,
 					sizeof (struct blkt_100_s),
-					blkt_type);
+					blkt_type, 0);
 	  if ( ! blkt_link )
 	    break;
 	  
@@ -247,7 +247,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	  
 	  blkt_link = msr_addblockette (msr, record + blkt_offset,
 					sizeof (struct blkt_200_s),
-					blkt_type);
+					blkt_type, 0);
 	  if ( ! blkt_link )
 	    break;
 	  
@@ -270,7 +270,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	  
 	  blkt_link = msr_addblockette (msr, record + blkt_offset,
 					sizeof (struct blkt_201_s),
-					blkt_type);
+					blkt_type, 0);
 	  if ( ! blkt_link )
 	    break;
 	  
@@ -293,7 +293,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	  
 	  blkt_link = msr_addblockette (msr, record + blkt_offset,
 					sizeof (struct blkt_300_s),
-					blkt_type);
+					blkt_type, 0);
 	  if ( ! blkt_link )
 	    break;
 	  
@@ -317,7 +317,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	  
 	  blkt_link = msr_addblockette (msr, record + blkt_offset,
 					sizeof (struct blkt_310_s),
-					blkt_type);
+					blkt_type, 0);
 	  if ( ! blkt_link )
 	    break;
 	  
@@ -341,7 +341,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	  
 	  blkt_link = msr_addblockette (msr, record + blkt_offset,
 					sizeof (struct blkt_320_s),
-					blkt_type);
+					blkt_type, 0);
 	  if ( ! blkt_link )
 	    break;
 	  
@@ -364,7 +364,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	  
 	  blkt_link = msr_addblockette (msr, record + blkt_offset,
 					sizeof (struct blkt_390_s),
-					blkt_type);
+					blkt_type, 0);
 	  if ( ! blkt_link )
 	    break;
 	  
@@ -386,7 +386,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	  
 	  blkt_link = msr_addblockette (msr, record + blkt_offset,
 					sizeof (struct blkt_395_s),
-					blkt_type);
+					blkt_type, 0);
 	  if ( ! blkt_link )
 	    break;
 	  
@@ -406,7 +406,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	  
 	  blkt_link = msr_addblockette (msr, record + blkt_offset,
 					sizeof (struct blkt_400_s),
-					blkt_type);
+					blkt_type, 0);
 	  if ( ! blkt_link )
 	    break;
 	  
@@ -428,7 +428,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	  
 	  blkt_link = msr_addblockette (msr, record + blkt_offset,
 					sizeof (struct blkt_405_s),
-					blkt_type);
+					blkt_type, 0);
 	  if ( ! blkt_link )
 	    break;
 	  
@@ -453,7 +453,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	  
 	  blkt_link = msr_addblockette (msr, record + blkt_offset,
 					sizeof (struct blkt_500_s),
-					blkt_type);
+					blkt_type, 0);
 	  if ( ! blkt_link )
 	    break;
 	  
@@ -475,7 +475,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	  
 	  blkt_link = msr_addblockette (msr, record + blkt_offset,
 					sizeof (struct blkt_1000_s),
-					blkt_type);
+					blkt_type, 0);
 	  if ( ! blkt_link )
 	    break;
 	  
@@ -503,7 +503,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	{			/* Found a Blockette 1001 */
 	  blkt_link = msr_addblockette (msr, record + blkt_offset,
 					sizeof (struct blkt_1001_s),
-					blkt_type);
+					blkt_type, 0);
 	  if ( ! blkt_link )
 	    break;
 	  
@@ -523,7 +523,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	  b2klen -= 4;
 	  
 	  blkt_link = msr_addblockette (msr, record + blkt_offset,
-					b2klen, blkt_type);
+					b2klen, blkt_type, 0);
 	  if ( ! blkt_link )
 	    break;
 	  
@@ -545,7 +545,7 @@ msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
 	    {
 	      blkt_link = msr_addblockette (msr, record + blkt_offset,
 					    blkt_length - 4,
-					    blkt_type);
+					    blkt_type, 0);
 	      
 	      if ( ! blkt_link )
 		break;

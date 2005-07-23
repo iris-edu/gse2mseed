@@ -1,3 +1,9 @@
+2005.203: 1.1
+	- Add 'chainpos' argument to msr_addblockette() to control
+	which end of the blockette chain the blockette is added to.
+	- Change msr_pack() to add any missing 1000 Blockettes to
+	the end of the blockette chain.
+
 2005.201: 1.0 Final
 	- Change version of example programs so they don't conflict
 	with future, non-example versions.

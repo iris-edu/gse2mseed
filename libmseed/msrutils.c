@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, ORFEUS/EC-Project MEREDIAN
  *
- * modified: 2005.173
+ * modified: 2005.203
  ***************************************************************************/
 
 #include <stdio.h>
@@ -142,16 +142,18 @@ msr_free_blktchain ( MSrecord *msr )
  *
  * Add a blockette to the blockette chain of an MSrecord.  'blktdata'
  * should be the body of the blockette type 'blkttype' of 'length'
- * bytes without the blockette header (type and next offsets).
- * Blockettes of type 1000 are always added to the beginning of the
- * blockette chain (first blockette) and all others are added to the
- * end (last blockette).
+ * bytes without the blockette header (type and next offsets).  The
+ * 'chainpos' value controls which end of the chain the blockette is
+ * added to.  If 'chainpos' is 0 the blockette will be added to the
+ * end of the chain (last blockette), other wise it will be added to
+ * the beginning of the chain (first blockette).
  *
  * Returns a pointer to the BlktLink added to the chain on success and
  * NULL on error.
  ***************************************************************************/
 BlktLink *
-msr_addblockette (MSrecord *msr, char *blktdata, int length, int blkttype)
+msr_addblockette (MSrecord *msr, char *blktdata, int length, int blkttype,
+		  int chainpos)
 {
   BlktLink *blkt;
   
@@ -162,7 +164,7 @@ msr_addblockette (MSrecord *msr, char *blktdata, int length, int blkttype)
   
   if ( blkt )
     {
-      if ( blkttype == 1000 )
+      if ( chainpos != 0 )
 	{
 	  blkt = (BlktLink *) malloc (sizeof(BlktLink));
 	  

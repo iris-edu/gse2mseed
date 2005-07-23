@@ -32,8 +32,8 @@ extern "C" {
 #include <inttypes.h>
 #include <sys/types.h>
 
-#define LIBMSEED_VERSION "1.0"
-#define LIBMSEED_RELEASE "2005.201"
+#define LIBMSEED_VERSION "1.1"
+#define LIBMSEED_RELEASE "2005.203"
 
 #define MINRECLEN   256      /* Minimum Mini-SEED record length, 2^8 bytes */
 #define MAXRECLEN   1048576  /* Maximum Mini-SEED record length, 2^20 bytes */
@@ -358,7 +358,8 @@ extern int          msr_pack_header (MSrecord *msr, flag verbose);
 extern MSrecord*    msr_init (MSrecord *msr);
 extern void         msr_free (MSrecord **ppmsr);
 extern void         msr_free_blktchain (MSrecord *msr);
-extern BlktLink*    msr_addblockette (MSrecord *msr, char *blktdata, int length, int blkttype);
+extern BlktLink*    msr_addblockette (MSrecord *msr, char *blktdata, int length,
+                                      int blkttype, int chainpos);
 extern double       msr_samprate (MSrecord *msr);
 extern double       msr_nomsamprate (MSrecord *msr);
 extern hptime_t     msr_starttime (MSrecord *msr);
