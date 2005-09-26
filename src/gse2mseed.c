@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center
  *
- * modified 2005.204
+ * modified 2005.269
  ***************************************************************************/
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 
 #include "cm6.h"
 
-#define VERSION "1.1"
+#define VERSION "1.2"
 #define PACKAGE "gse2mseed"
 
 static int gse2group (char *gsefile, TraceGroup *mstg);

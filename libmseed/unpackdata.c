@@ -2,46 +2,18 @@
  *  Routines for unpacking INT_16, INT_32, FLOAT_32, FLOAT_64,
  *  STEIM1 and STEIM2, data records.
  *
+ *  Original framework by:
+ *
  *	Douglas Neuhauser						
  *	Seismographic Station						
  *	University of California, Berkeley				
  *	doug@seismo.berkeley.edu					
  *									
- *									
- *  Changes:	       							
- *  2004.09.13
- *  - Rework and clean all routines for use in libmseed.
- *  - Add the float_32 and float_64 unpacking routines.
+ *  Modified by Chad Trabant,
+ *  (previously) ORFEUS/EC-Project MEREDIAN
+ *  (currently) IRIS Data Management Center
  *
- *  2004.06.05
- *  - Remove ms_unpack from this file and add 'ms_' prefix to all
- *  function names. (update to ms_)
- *       							
- *  2003.10.10
- *  - Re-work printing for libmsr/libmseed (remove all libslink
- *  references, pass verbose to the unpack_x routines, etc.).
- *  - Remove check for BADFRAMECOUNT, the test was using data just
- *  calculated from itself, i.e. a nonsense test.
- *
- *  2003.07.26
- *  - Set the decompression error flag in the SLCD.
- *  - Minor renaming updates.
- *
- *  2003.06.05
- *  - Declare the unpack_x routines as static. 
- *
- *  2003.03.02
- *  - Move needed header stuff into the original file.    	
- *  - Add an interface function msh_unpack() to work within the context	
- *    of libslink.
- *  - port to use libslink functions usage [gswapx() and sl_log()].
- *  - change to use uintXX_t type declarations for fixed integer types.
- *  - cleanup for clarity and remove some minor debugging/unused code.
- *
- *
- *  Modified by Chad Trabant, ORFEUS/EC-Project MEREDIAN		
- *
- *  modified: 2004.349
+ *  modified: 2005.269
  ************************************************************************/
 
 /*
@@ -86,20 +58,21 @@
 /************************************************************************
  *  msr_unpack_int_16:							*
  *	Unpack int_16 miniSEED data and place in supplied buffer.	*
- *  Return: # of samples returned; negative unpack/decomp code on error.*
+ *  Return: # of samples returned.                                      *
  ************************************************************************/
 int msr_unpack_int_16 
- (int16_t	*ibuf,		/* ptr to input data.			*/
+ (int16_t      *ibuf,		/* ptr to input data.			*/
   int		num_samples,	/* number of data samples in all frames.*/
   int		req_samples,	/* number of data desired by caller.	*/
-  int32_t	*databuff,	/* ptr to unpacked data array.		*/
+  int32_t      *databuff,	/* ptr to unpacked data array.		*/
+  int8_t       *unpackerr,      /* unpacking error code.                */
   int		swapflag)       /* if data should be swapped.	        */
 {
   int		nd = 0;		/* # of data points in packet.		*/
   uint16_t	stmp;
   
-  if (num_samples < 0) return (MS_BADSAMPCOUNT);
-  if (req_samples < 0) req_samples = -req_samples;
+  if (num_samples < 0) { *unpackerr = MS_BADSAMPCOUNT; return 0; }
+  if (req_samples < 0) { *unpackerr = MS_BADSAMPCOUNT; return 0; }
   
   for (nd=0; nd<req_samples && nd<num_samples; nd++) {
     stmp = ibuf[nd];
@@ -114,20 +87,21 @@ int msr_unpack_int_16
 /************************************************************************
  *  msr_unpack_int_32:							*
  *	Unpack int_32 miniSEED data and place in supplied buffer.	*
- *  Return: # of samples returned; negative unpack/decomp flag on error.*
+ *  Return: # of samples returned.                                      *
  ************************************************************************/
 int msr_unpack_int_32
  (int32_t      *ibuf,		/* ptr to input data.			*/
   int		num_samples,	/* number of data samples in all frames.*/
   int		req_samples,	/* number of data desired by caller.	*/
   int32_t      *databuff,	/* ptr to unpacked data array.		*/
+  int8_t       *unpackerr,      /* unpacking error code.                */
   int		swapflag)	/* if data should be swapped.	        */
 {
   int		nd = 0;		/* # of data points in packet.		*/
   int32_t    	itmp;
   
-  if (num_samples < 0) return (MS_BADSAMPCOUNT);
-  if (req_samples < 0) req_samples = -req_samples;
+  if (num_samples < 0) { *unpackerr = MS_BADSAMPCOUNT; return 0; }
+  if (req_samples < 0) { *unpackerr = MS_BADSAMPCOUNT; return 0; }
   
   for (nd=0; nd<req_samples && nd<num_samples; nd++) {
     itmp = ibuf[nd];
@@ -142,20 +116,21 @@ int msr_unpack_int_32
 /************************************************************************
  *  msr_unpack_float_32:	       				 	*
  *	Unpack float_32 miniSEED data and place in supplied buffer.	*
- *  Return: # of samples returned; negative unpack/decomp flag on error.*
+ *  Return: # of samples returned.                                      *
  ************************************************************************/
 int msr_unpack_float_32
  (float	       *fbuf,		/* ptr to input data.			*/
   int		num_samples,	/* number of data samples in all frames.*/
   int		req_samples,	/* number of data desired by caller.	*/
   float	       *databuff,	/* ptr to unpacked data array.		*/
+  int8_t       *unpackerr,      /* unpacking error code.                */
   int		swapflag)	/* if data should be swapped.	        */
 {
   int		nd = 0;		/* # of data points in packet.		*/
   float    	ftmp;
   
-  if (num_samples < 0) return (MS_BADSAMPCOUNT);
-  if (req_samples < 0) req_samples = -req_samples;
+  if (num_samples < 0) { *unpackerr = MS_BADSAMPCOUNT; return 0; }
+  if (req_samples < 0) { *unpackerr = MS_BADSAMPCOUNT; return 0; }
   
   for (nd=0; nd<req_samples && nd<num_samples; nd++) {
     ftmp = fbuf[nd];
@@ -170,20 +145,21 @@ int msr_unpack_float_32
 /************************************************************************
  *  msr_unpack_float_64:	       					*
  *	Unpack float_64 miniSEED data and place in supplied buffer.	*
- *  Return: # of samples returned; negative unpack/decomp flag on error.*
+ *  Return: # of samples returned.                                       *
  ************************************************************************/
 int msr_unpack_float_64
  (double       *fbuf,		/* ptr to input data.			*/
   int		num_samples,	/* number of data samples in all frames.*/
   int		req_samples,	/* number of data desired by caller.	*/
   double       *databuff,	/* ptr to unpacked data array.		*/
+  int8_t       *unpackerr,      /* unpacking error code.                */
   int		swapflag)	/* if data should be swapped.	        */
 {
   int		nd = 0;		/* # of data points in packet.		*/
   double  	dtmp;
   
-  if (num_samples < 0) return (MS_BADSAMPCOUNT);
-  if (req_samples < 0) req_samples = -req_samples;
+  if (num_samples < 0) { *unpackerr = MS_BADSAMPCOUNT; return 0; }
+  if (req_samples < 0) { *unpackerr = MS_BADSAMPCOUNT; return 0; }
   
   for (nd=0; nd<req_samples && nd<num_samples; nd++) {
     dtmp = fbuf[nd];
@@ -198,12 +174,9 @@ int msr_unpack_float_64
 /************************************************************************
  *  msr_unpack_steim1:							*
  *	Unpack STEIM1 data frames and place in supplied buffer.		*
- *	Data is divided into frames.					*
- *	If req_samples < 0, perform fast decompression of |req_samples|.*
- *	Fast decompression does not decompress all frames, and does not	*
- *	verify that the last sample == xN.  Fast decompression is used	*
- *	primarily to obtain the first value and difference.		*
- *  Return: # of samples returned; negative unpack/decomp flag on error.*
+ *	Data is divided into frames.  The unpackerr int is set when an  *
+ *      error occurs.                                                   *
+ *  Return: # of samples returned.                                      *
  ************************************************************************/
 int msr_unpack_steim1
  (FRAME	       *pf,		/* ptr to Steim1 data frames.		*/
@@ -214,6 +187,7 @@ int msr_unpack_steim1
   int32_t      *diffbuff,	/* ptr to unpacked diff array.		*/
   int32_t      *px0,		/* return X0, first sample in frame.	*/
   int32_t      *pxn,		/* return XN, last sample in frame.	*/
+  int8_t       *unpackerr,      /* unpacking error code.                */
   int		swapflag,	/* if data should be swapped.	        */
   int           verbose)
 {
@@ -225,19 +199,15 @@ int msr_unpack_steim1
   int		fn;		/* current frame number.		*/
   int		wn;		/* current work number in the frame.	*/
   int		compflag;      	/* current compression flag.		*/
-  int		fast = 0;	/* flag for fast decompression.		*/
   int		nr, i;
   int32_t	last_data;
   int32_t	itmp;
   int16_t	stmp;
   uint32_t	ctrl;
   
-  if (num_samples < 0) return (MS_BADSAMPCOUNT);
-  if (num_samples == 0) return (0);
-  if (req_samples < 0) {
-    req_samples = -req_samples;
-    fast = 1;
-  }
+  if (num_samples < 0) { *unpackerr = MS_BADSAMPCOUNT; return 0; }
+  if (num_samples == 0) return 0;
+  if (req_samples < 0) { *unpackerr = MS_BADSAMPCOUNT; return 0; }
   
   /* Extract forward and reverse integration constants in first frame */
   *px0 = X0;
@@ -256,8 +226,6 @@ int msr_unpack_steim1
   /* Decode compressed data in each frame */
   for (fn = 0; fn < num_data_frames; fn++)
     {
-      if (fast && nd >= req_samples)
-	break;
       
       ctrl = pf->ctrl;
       if ( swapflag ) gswap4 (&ctrl);
@@ -265,7 +233,6 @@ int msr_unpack_steim1
       for (wn = 0; wn < VALS_PER_FRAME; wn++)
 	{
 	  if (nd >= num_samples) break;
-	  if (fast && nd >= req_samples) break;
 	  
 	  compflag = (ctrl >> ((VALS_PER_FRAME-wn-1)*2)) & 0x3;
 	  
@@ -310,19 +277,23 @@ int msr_unpack_steim1
 	      
 	    default:
 	      /* Should NEVER get here */
-	      fprintf (stderr, "msr_unpack_steim1(): invalid cf = %d\n", compflag);
-	      return (MS_STBADCOMPFLAG);
+	      fprintf (stderr, "msr_unpack_steim1(): invalid compression flag = %d\n", compflag);
+	      *unpackerr = MS_STBADCOMPFLAG;
+	      return 0;
 	    }
 	}
       ++pf;
     }
   
   /* Test if the number of samples implied by the data frames is the
-   * same number indicated in the header
+   * same number indicated in the header.
    */
   if ( nd != num_samples )
-    fprintf (stderr, "msr_unpack_steim1(): number of samples indicated in header (%d) does not equal data (%d)\n",
-	     num_samples, nd);
+    {
+      fprintf (stderr, "msr_unpack_steim1(): number of samples indicated in header (%d) does not equal data (%d)\n",
+	       num_samples, nd);
+      *unpackerr = MS_SAMPMISMATCH;
+    }
   
   /*	For now, assume sample count in header to be correct.		*/
   /*	One way of "trimming" data from a block is simply to reduce	*/
@@ -347,42 +318,34 @@ int msr_unpack_steim1
   if (nr > 0)
     *data = *px0;
   
-  /* Compute all but first values based on previous value.		*/
-  /* Compute all data values in order to compare last value with xn,	*/
-  /* but only return the number of values desired by calling routine.	*/
-  
+  /* Compute all but first values based on previous value               */
   prev = data - 1;
   while (--nr > 0 && --nd > 0)
     last_data = *++data = *++diff + *++prev;
   
-  if (! fast)
+  /* If a short count was requested compute the last sample in order    */
+  /* to perform the integrity check comparison                          */
+  while (--nd > 0)
+    last_data = *++diff + last_data;
+  
+  /* Verify that the last value is identical to xn = rev. int. constant */
+  if (last_data != *pxn)
     {
-      while (--nd > 0)
-	last_data = *++diff + last_data;
-      
-      /* Verify that the last value is identical to xn */
-      if (last_data != *pxn)
-	{
-	  fprintf (stderr, "Data integrity for Steim-1 is bad, last_data=%d, xn=%d\n",
-		   last_data, *pxn);
-	  
-	  return (MS_STBADLASTMATCH);
-	}
+      fprintf (stderr, "Data integrity check for Steim-1 failed, last_data=%d, xn=%d\n",
+	       last_data, *pxn);
+      *unpackerr = MS_STBADLASTMATCH;
     }
   
-  return ((req_samples<num_samples) ? req_samples : num_samples);
+  return ((req_samples < num_samples) ? req_samples : num_samples);
 }  /* End of msr_unpack_steim1() */
 
 
 /************************************************************************
  *  msr_unpack_steim2:							*
  *	Unpack STEIM2 data frames and place in supplied buffer.		*
- *	Data is divided into frames.					*
- *	If req_samples < 0, perform fast decompression of |req_samples|.*
- *	Fast decompression does not decompress all frames, and does not	*
- *	verify that the last sample == xN.  Fast decompression is used	*
- *	primarily to obtain the first value and difference.		*
- *  Return: # of samples returned; negative unpack/decomp flag on error.*
+ *	Data is divided into frames.  The unpackerr int is set when an  *
+ *      error occurs.                                                   *
+ *  Return: # of samples returned.                                      *
  ************************************************************************/
 int msr_unpack_steim2 
  (FRAME	       *pf,		/* ptr to Steim2 data frames.		*/
@@ -393,6 +356,7 @@ int msr_unpack_steim2
   int32_t      *diffbuff,	/* ptr to unpacked diff array.		*/
   int32_t      *px0,		/* return X0, first sample in frame.	*/
   int32_t      *pxn,		/* return XN, last sample in frame.	*/
+  int8_t       *unpackerr,      /* unpacking error code.                */
   int		swapflag,	/* if data should be swapped.	        */
   int           verbose)
 {
@@ -404,7 +368,6 @@ int msr_unpack_steim2
   int		fn;		/* current frame number.		*/
   int		wn;		/* current work number in the frame.	*/
   int		compflag;     	/* current compression flag.		*/
-  int		fast = 0;	/* flag for fast decompression.		*/
   int		nr, i;
   int		n, bits, m1, m2;
   int32_t	last_data;
@@ -412,31 +375,27 @@ int msr_unpack_steim2
   int8_t	dnib;
   uint32_t	ctrl;
   
-  if (num_samples < 0) return (MS_BADSAMPCOUNT);
-  if (num_samples == 0) return (0);
-  if (req_samples < 0) {
-    req_samples = -req_samples;
-    fast = 1;
-  }
-
+  if (num_samples < 0) { *unpackerr = MS_BADSAMPCOUNT; return 0; }
+  if (num_samples == 0) return 0;
+  if (req_samples < 0) { *unpackerr = MS_BADSAMPCOUNT; return 0; }
+  
   /* Extract forward and reverse integration constants in first frame.*/
   *px0 = X0;
   *pxn = XN;
-
+  
   if ( swapflag )
     {
       gswap4 (px0);
       gswap4 (pxn);
     }
-
+  
   if ( verbose > 2 )
     fprintf (stderr, "forward/reverse integration constants:\nX0: %d  XN: %d\n",
 	     *px0, *pxn);
   
-  /*	Decode compressed data in each frame */
+  /* Decode compressed data in each frame */
   for (fn = 0; fn < num_data_frames; fn++)
     {
-      if (fast && nd >= req_samples) break;
       
       ctrl = pf->ctrl;
       if ( swapflag ) gswap4 (&ctrl);
@@ -444,7 +403,6 @@ int msr_unpack_steim2
       for (wn = 0; wn < VALS_PER_FRAME; wn++)
 	{
 	  if (nd >= num_samples) break;
-	  if (fast && nd >= req_samples) break;
 	  
 	  compflag = (ctrl >> ((VALS_PER_FRAME-wn-1)*2)) & 0x3;
 	  
@@ -473,9 +431,10 @@ int msr_unpack_steim2
 		case 3:	/* 3 10-bit differences */
 		  bits = 10; n = 3; m1 = 0x000003ff; m2 = 0x00000200; break;
 		default:	/*  should NEVER get here  */
-		  fprintf(stderr, "msr_unpack_steim2(): invalid cf, dnib, fn, wn = %d, %d, %d, %d\n", 
+		  fprintf(stderr, "msr_unpack_steim2(): invalid compflag, dnib, fn, wn = %d, %d, %d, %d\n", 
 			  compflag, dnib, fn, wn);
-		  return (MS_STBADCOMPFLAG);
+		  *unpackerr = MS_STBADCOMPFLAG;
+		  return 0;
 		}
 	      /*  Uncompress the differences */
 	      for (i=(n-1)*bits; i >= 0 && nd < num_samples; i-=bits, nd++)
@@ -485,7 +444,7 @@ int msr_unpack_steim2
 		  diff++;
 		}
 	      break;
-
+	      
 	    case STEIM2_567_MASK:
 	      val = pf->w[wn].fw;
 	      if ( swapflag ) gswap4 (&val);
@@ -499,9 +458,10 @@ int msr_unpack_steim2
 		case 2:	/*  7 4-bit differences  */
 		  bits = 4; n = 7; m1 = 0x0000000f; m2 = 0x00000008; break;
 		default:
-		  fprintf (stderr, "msr_unpack_steim2(): invalid cf, dnib, fn, wn = %d, %d, %d, %d\n", 
+		  fprintf (stderr, "msr_unpack_steim2(): invalid compflag, dnib, fn, wn = %d, %d, %d, %d\n", 
 			   compflag, dnib, fn, wn);
-		  return (MS_STBADCOMPFLAG);
+		  *unpackerr = MS_STBADCOMPFLAG;
+		  return 0;
 		}
 	      /* Uncompress the differences */
 	      for (i=(n-1)*bits; i >= 0 && nd < num_samples; i-=bits, nd++)
@@ -511,24 +471,28 @@ int msr_unpack_steim2
 		  diff++;
 		}
 	      break;
-
+	      
 	    default:
 	      /* Should NEVER get here */
-	      fprintf (stderr, "msr_unpack_steim2(): invalid compflag cf, fn, wn = %d, %d, %d - nsamp: %d\n",
+	      fprintf (stderr, "msr_unpack_steim2(): invalid compflag, fn, wn = %d, %d, %d - nsamp: %d\n",
 		       compflag, fn, wn, nd);
-	      return (MS_STBADCOMPFLAG);
+	      *unpackerr = MS_STBADCOMPFLAG;
+	      return 0;
 	    }
 	}
       ++pf;
     }
     
   /* Test if the number of samples implied by the data frames is the
-   * same number indicated in the header
+   * same number indicated in the header.
    */
   if ( nd != num_samples )
-    fprintf (stderr, "msr_unpack_steim2(): number of samples indicated in header (%d) does not equal data (%d)\n",
-	     num_samples, nd);
-  
+    {
+      fprintf (stderr, "msr_unpack_steim2(): number of samples indicated in header (%d) does not equal data (%d)\n",
+	       num_samples, nd);
+      *unpackerr = MS_SAMPMISMATCH;
+    }
+
   /*	For now, assume sample count in header to be correct.		*/
   /*	One way of "trimming" data from a block is simply to reduce	*/
   /*	the sample count.  It is not clear from the documentation	*/
@@ -552,27 +516,23 @@ int msr_unpack_steim2
   if (nr > 0)
     *data = *px0;
 
-  /* Compute all but first values based on previous value.		*/
-  /* Compute all data values in order to compare last value with xn,	*/
-  /* but only return the number of values desired by calling routine.	*/
-
+  /* Compute all but first values based on previous value               */
   prev = data - 1;
   while (--nr > 0 && --nd > 0)
     last_data = *++data = *++diff + *++prev;
 
-  if (! fast)
+  /* If a short count was requested compute the last sample in order    */
+  /* to perform the integrity check comparison                          */
+  while (--nd > 0)
+    last_data = *++diff + last_data;
+  
+  /* Verify that the last value is identical to xn = rev. int. constant */
+  if (last_data != *pxn)
     {
-      while (--nd > 0)
-	last_data = *++diff + last_data;
-	
-      /* Verify that the last value is identical to xn */
-      if (last_data != *pxn)
-	{
-	  fprintf (stderr, "Data integrity for Steim-2 is bad, last_data=%d, xn=%d\n",
-		   last_data, *pxn);
-	  return (MS_STBADLASTMATCH);
-	}
+      fprintf (stderr, "Data integrity check for Steim-2 failed, last_data=%d, xn=%d\n",
+	       last_data, *pxn);
+      *unpackerr = MS_STBADLASTMATCH;
     }
-    
-  return ((req_samples<num_samples) ? req_samples : num_samples);
+  
+  return ((req_samples < num_samples) ? req_samples : num_samples);
 }  /* End of msr_unpack_steim2() */

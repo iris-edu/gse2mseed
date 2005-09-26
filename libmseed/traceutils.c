@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center
  *
- * modified: 2005.157
+ * modified: 2005.269
  ***************************************************************************/
 
 #include <stdio.h>
@@ -284,8 +284,16 @@ mst_addmsr ( Trace *mst, MSrecord *msr, flag whence )
   if ( ! mst || ! msr )
     return -1;
   
+  /* Reallocate data sample buffer if samples are present */
   if ( msr->datasamples && msr->numsamples >= 0 )
     {
+      /* Check that the entire record was decompressed */
+      if ( msr->samplecnt != msr->numsamples )
+	{
+	  fprintf (stderr, "mst_addmsr(): Sample counts do not match, record not fully decompressed?\n");
+	  fprintf (stderr, "  The sample buffer will likely contain a discontinuity.\n");
+	}
+
       if ( (samplesize = get_samplesize(msr->sampletype)) == 0 )
 	{
 	  fprintf (stderr, "mst_addmsr(): Unrecognized sample type: '%c'\n",

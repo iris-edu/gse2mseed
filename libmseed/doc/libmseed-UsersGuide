@@ -1,5 +1,5 @@
 
-                      An introduction to libmseed-1.0
+                        An introduction to libmseed
 
 
  -- Introduction --
@@ -76,7 +76,7 @@ typedef struct MSrecord_s {
   char            station[11];       /* Station designation, NULL terminated */
   char            location[11];      /* Location designation, NULL terminated */
   char            channel[11];       /* Channel designation, NULL terminated */
-  int64_t         starttime;         /* Record start time, corrected (first sample) */
+  hptime_t        starttime;         /* Record start time, corrected (first sample) */
   double          samprate;          /* Nominal sample rate (Hz) */
   int32_t         samplecnt;         /* Number of samples in record */
   int8_t          encoding;          /* Data encoding format */
@@ -214,8 +214,8 @@ typedef struct Trace_s {
   char            location[11];    /* Location designation, NULL terminated */
   char            channel[11];     /* Channel designation, NULL terminated */
   char            type;            /* Trace type code */
-  int64_t         starttime;       /* Time of first sample */
-  int64_t         endtime;         /* Time of last sample */
+  hptime_t        starttime;       /* Time of first sample */
+  hptime_t        endtime;         /* Time of last sample */
   double          samprate;        /* Nominal sample rate (Hz) */
   int32_t         samplecnt;       /* Number of samples in trace coverage */
   void           *datasamples;     /* Data samples, 'numsamples' of type 'sampletype'*/

@@ -144,8 +144,6 @@ ms_readmsr (char *msfile, int reclen, off_t *fpos, int *last,
 	      if ( ! feof (fp) )
 		fprintf (stderr, "Short read at %d bytes during length detection\n", readlen);
 	      
-	      fprintf (stderr, "Cannot detect record length: %s\n", msfile);
-	  
 	      fclose (fp); fp = NULL; msr_free (&msr);
 	      free (rawrec); rawrec = NULL;
 	      return NULL;
@@ -233,7 +231,7 @@ ms_readmsr (char *msfile, int reclen, off_t *fpos, int *last,
     }
   
   /* Read subsequent records */
-  while ( 1 )
+  for (;;)
     {
       if ( fpos != NULL )
 	*fpos = ftello (fp);
@@ -356,6 +354,7 @@ myfread (char *buf, int size, int num, FILE *stream)
     {
       fprintf (stderr, "Premature end of file, only read %d of %d bytes\n",
 	       (size * read), (size * num));
+      fprintf (stderr, "Either this is a partial record or the file is not SEED\n");
     }
   
   return read;

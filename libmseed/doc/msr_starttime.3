@@ -1,4 +1,4 @@
-.TH MSR_STARTTIME 3 2004/12/01 "Libmseed API"
+.TH MSR_STARTTIME 3 2005/09/23 "Libmseed API"
 .SH DESCRIPTION
 Start and end time determination for MSrecord structures
 
@@ -6,11 +6,11 @@ Start and end time determination for MSrecord structures
 .nf
 .B #include <libmseed.h>
 
-.BI "int64_t  \fBmsr_starttime\fP ( MSrecord *" msr " );"
+.BI "hptime_t  \fBmsr_starttime\fP ( MSrecord *" msr " );"
 
-.BI "int64_t  \fBmsr_starttime_uc\fP ( MSrecord *" msr " );"
+.BI "hptime_t  \fBmsr_starttime_uc\fP ( MSrecord *" msr " );"
 
-.BI "int64_t  \fBmsr_endtime\fP ( MSrecord *" msr " );"
+.BI "hptime_t  \fBmsr_endtime\fP ( MSrecord *" msr " );"
 .fi
 
 .SH DESCRIPTION
@@ -21,7 +21,7 @@ already been applied.  If Blockette 1001 is included and parsed the
 microseconds indicated (field 4) are also applied.
 
 NOTE: The record start time for a MSrecord structure is available
-directly at MSrecord.starttime.  libmseed based programs should use
+directly at MSrecord.starttime.  Libmseed based programs should use
 that start time whenever possible (\fBmsr_unpack\fP uses
 \fBmsr_starttime\fP to set MSrecord.starttime).
 

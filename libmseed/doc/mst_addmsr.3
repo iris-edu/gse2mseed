@@ -1,4 +1,4 @@
-.TH MST_ADDMSR 3 2004/12/01 "Libmseed API"
+.TH MST_ADDMSR 3 2005/09/23 "Libmseed API"
 .SH DESCRIPTION
 Add time coverage and data samples to Trace structures
 
@@ -8,7 +8,7 @@ Add time coverage and data samples to Trace structures
 
 .BI "int    *\fBmst_addmsr\fP ( Trace *" mst ", MSrecord *" msr ", flag " whence " );
 
-.BI "int     \fBmst_addspan\fP ( Trace *" mst ", int64_t " starttime ", int64_t " endtime ",
+.BI "int     \fBmst_addspan\fP ( Trace *" mst ", hptime_t " starttime ", hptime_t " endtime ",
 .BI "                      void *" datasamples ", int " numsamples ",
 .BI "                      char " sampletype ",  flag " whence " );
 

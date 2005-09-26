@@ -1,4 +1,4 @@
-.TH MS_TIME 3 2005/05/26 "Libmseed API"
+.TH MS_TIME 3 2005/09/23 "Libmseed API"
 .SH DESCRIPTION
 Time conversion and string generation
 
@@ -6,27 +6,27 @@ Time conversion and string generation
 .nf
 .B #include <libmseed.h>
 
-.BI "#define MS_EPOCH2HPTIME(X) (hptime_t) X * HPTMODULUS;"
-.BI "#define MS_HPTIME2EPOCH(X) X / HPTMODULUS;" 
+.BI "MS_EPOCH2HPTIME(X) X * (hptime_t) HPTMODULUS"
+.BI "MS_HPTIME2EPOCH(X) X / HPTMODULUS"
 
-.BI "int64_t \fBms_btime2hptime\fP ( BTime *" btime " );"
+.BI "hptime_t \fBms_btime2hptime\fP ( BTime *" btime " );"
 
-.BI "char   *\fBms_btime2isotimestr\fP ( BTime *" btime ", char *" isotimestr " );"
+.BI "char    *\fBms_btime2isotimestr\fP ( BTime *" btime ", char *" isotimestr " );"
 
-.BI "char   *\fBms_btime2seedtimestr\fP ( BTime *" btime ", char *" seedtimestr " );"
+.BI "char    *\fBms_btime2seedtimestr\fP ( BTime *" btime ", char *" seedtimestr " );"
 
-.BI "int     \fBms_hptime2btime\fP ( int64_t " hptime ", BTime *" btime " );"
+.BI "int      \fBms_hptime2btime\fP ( hptime_t " hptime ", BTime *" btime " );"
 
-.BI "char   *\fBms_hptime2isotimestr\fP ( int64_t " hptime ", char *" isotimestr " );"
+.BI "char    *\fBms_hptime2isotimestr\fP ( hptime_t " hptime ", char *" isotimestr " );"
 
-.BI "char   *\fBms_hptime2seedtimestr\fP ( int64_t " hptime ", char *" seedtimestr " );"
+.BI "char    *\fBms_hptime2seedtimestr\fP ( hptime_t " hptime ", char *" seedtimestr " );"
 
-.BI "int64_t \fBms_time2hptime\fP ( int " year ", int " day ", int " hour ", int " min ","
+.BI "hptime_t \fBms_time2hptime\fP ( int " year ", int " day ", int " hour ", int " min ","
 .BI "                         int " sec ", int " usec " );"
 
-.BI "int64_t \fBms_seedtimestr2hptime\fP ( char *" seedtimestr " );"
+.BI "hptime_t \fBms_seedtimestr2hptime\fP ( char *" seedtimestr " );"
 
-.BI "int64_t \fBms_timestr2hptime\fP ( char *" timestr " );"
+.BI "hptime_t \fBms_timestr2hptime\fP ( char *" timestr " );"
 .fi
 
 .SH DESCRIPTION
@@ -149,8 +149,9 @@ As long as the system's \fPgmtime\fP function supports negative epoch
 times the internal time routines will be able to represent times
 earlier than the epoch, i.e. times earlier than 1 January 1970.
 
-The hptime values are stored as 64-bit integers to avoid accumulation
-errors associated with floating point values and allow high precision.
+The hptime values are stored as 64-bit integers to allow high
+precision and avoid accumulation errors associated with floating point
+values.
 
 A special value defined as HPTERROR is used to represent errors for
 routines returning hptime.

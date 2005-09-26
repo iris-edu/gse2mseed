@@ -1,4 +1,4 @@
-.TH MSR_UNPACK 3 2005/05/26 "Libmseed API"
+.TH MSR_UNPACK 3 2005/09/26 "Libmseed API"
 .SH DESCRIPTION
 Unpacking of Mini-SEED records.
 
@@ -48,6 +48,9 @@ MS_BADSAMPCOUNT: Requested number of samples is bad, negative?
 MS_STBADLASTMATCH: Steim, last sample != reverse integration constant
 MS_STBADCOMPFLAG: Steim, invalid compression flag(s)
 .fi
+
+It is left to the caller to test MSrecord.unpackerr and decide if the
+error can be ignored.
 
 The \fIverbose\fP flag controls verbosity, a value of zero will result
 in no diagnostic output.

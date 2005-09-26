@@ -1,6 +1,6 @@
-.TH MS_INTRO 3 2005/05/26
+.TH MS_INTRO 3 2005/09/23
 .SH NAME
-Introduction to libmseed-1.0
+Introduction to libmseed
 
 .SH INTRODUCTION
 
@@ -76,7 +76,7 @@ typedef struct MSrecord_s {
   char            station[11];       /* Station designation */
   char            location[11];      /* Location designation */
   char            channel[11];       /* Channel designation */
-  int64_t         starttime;         /* Record start time */
+  hptime_t        starttime;         /* Record start time */
   double          samprate;          /* Nominal sample rate (Hz) */
   int32_t         samplecnt;         /* Number of samples in record */
   int8_t          encoding;          /* Data encoding format */
@@ -217,8 +217,8 @@ typedef struct Trace_s {
   char            location[11];    /* Location designation */
   char            channel[11];     /* Channel designation */
   char            type;            /* Trace type code */
-  int64_t         starttime;       /* Time of first sample */
-  int64_t         endtime;         /* Time of last sample */
+  hptime_t        starttime;       /* Time of first sample */
+  hptime_t        endtime;         /* Time of last sample */
   double          samprate;        /* Nominal sample rate (Hz) */
   int32_t         samplecnt;       /* Num. in trace coverage */
   void           *datasamples;     /* Data samples */

@@ -1,3 +1,13 @@
+2005.269: 1.2
+	- Update many unpacking routines so that the MS_SAMPMISMATCH
+	error code is correctly returned and that none of the errors
+	are show stoppers, it is left to the application to decide. 
+	- Remove error message when read fails during detection, the
+	end of the file is simply that, no error.
+	- Fix definition of MS_EPOCH2HPTIME and MS_HPTIME2EPOCH in
+	ms_time.3 man page.
+	- Change int64_t types to hptime_t types in documentation. 
+
 2005.203: 1.1
 	- Add 'chainpos' argument to msr_addblockette() to control
 	which end of the blockette chain the blockette is added to.

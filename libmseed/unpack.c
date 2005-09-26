@@ -13,7 +13,7 @@
  *   ORFEUS/EC-Project MEREDIAN
  *   IRIS Data Management Center
  *
- * modified: 2005.203
+ * modified: 2005.269
  ***************************************************************************/
 
 #include <stdio.h>
@@ -65,7 +65,7 @@ static int encodingfallback = -2;
  * If the msr struct is NULL it will be allocated.
  * 
  * Returns a pointer to the MSrecord struct populated on success or
- *  NULL on error.
+ * NULL on error.
  ***************************************************************************/
 MSrecord *
 msr_unpack ( char *record, int reclen, MSrecord **ppmsr,
@@ -748,7 +748,7 @@ msr_unpack_data ( MSrecord *msr, int swapflag, int verbose )
       
       nsamples = msr_unpack_int_16 ((int16_t *)dbuf, msr->samplecnt,
 				    msr->samplecnt, msr->datasamples,
-				    swapflag);
+				    &msr->unpackerr, swapflag);
       msr->sampletype = 'i';
       break;
       
@@ -758,7 +758,7 @@ msr_unpack_data ( MSrecord *msr, int swapflag, int verbose )
 
       nsamples = msr_unpack_int_32 ((int32_t *)dbuf, msr->samplecnt,
 				    msr->samplecnt, msr->datasamples,
-				    swapflag);
+				    &msr->unpackerr, swapflag);
       msr->sampletype = 'i';
       break;
       
@@ -768,7 +768,7 @@ msr_unpack_data ( MSrecord *msr, int swapflag, int verbose )
       
       nsamples = msr_unpack_float_32 ((float *)dbuf, msr->samplecnt,
 				      msr->samplecnt, msr->datasamples,
-				      swapflag);
+				      &msr->unpackerr, swapflag);
       msr->sampletype = 'f';
       break;
       
@@ -778,7 +778,7 @@ msr_unpack_data ( MSrecord *msr, int swapflag, int verbose )
       
       nsamples = msr_unpack_float_64 ((double *)dbuf, msr->samplecnt,
 				      msr->samplecnt, msr->datasamples,
-				      swapflag);
+				      &msr->unpackerr, swapflag);
       msr->sampletype = 'd';
       break;
       
@@ -795,7 +795,7 @@ msr_unpack_data ( MSrecord *msr, int swapflag, int verbose )
       
       nsamples = msr_unpack_steim1 ((FRAME *)dbuf, datasize, msr->samplecnt,
 				    msr->samplecnt, msr->datasamples, diffbuff, 
-				    &x0, &xn, swapflag, verbose);
+				    &x0, &xn, &msr->unpackerr, swapflag, verbose);
       msr->sampletype = 'i';
       free (diffbuff);
       break;
@@ -813,7 +813,7 @@ msr_unpack_data ( MSrecord *msr, int swapflag, int verbose )
 
       nsamples = msr_unpack_steim2 ((FRAME *)dbuf, datasize, msr->samplecnt,
 				    msr->samplecnt, msr->datasamples, diffbuff,
-				    &x0, &xn, swapflag, verbose);
+				    &x0, &xn, &msr->unpackerr, swapflag, verbose);
       msr->sampletype = 'i';
       free (diffbuff);
       break;
@@ -828,16 +828,7 @@ msr_unpack_data ( MSrecord *msr, int swapflag, int verbose )
       return -1;
     }
   
-  if ( nsamples > 0 || msr->samplecnt == 0 )
-    {
-      return nsamples;
-    }
-  if ( nsamples < 0 )
-    {
-      msr->unpackerr = nsamples;
-    }
-  
-  return -1;
+  return nsamples;
 } /* End of msr_unpack_data() */
 
 
