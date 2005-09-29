@@ -8,9 +8,6 @@
  * modified: 2005.117
  ***************************************************************************/
 
-/* Define _LARGEFILE_SOURCE to get ftello on some systems (Linux */
-#define _LARGEFILE_SOURCE 1
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -98,7 +95,7 @@ ms_readmsr (char *msfile, int reclen, off_t *fpos, int *last,
 	{
 	  fp = stdin;
 	}
-      else if ( (fp = fopen (msfile, "r")) == NULL )
+      else if ( (fp = fopen (msfile, "rb")) == NULL )
 	{
 	  fprintf (stderr, "Error opening file: %s (%s)\n",
 		   msfile, strerror (errno));
@@ -137,7 +134,7 @@ ms_readmsr (char *msfile, int reclen, off_t *fpos, int *last,
 	  rawrec = (char *) realloc (rawrec, readlen);
 	  
 	  if ( fpos != NULL )
-	    *fpos = ftello (fp);
+	    *fpos = lmp_ftello (fp);
 	  
 	  if ( (myfread (rawrec + prevreadlen, 1, (readlen - prevreadlen), fp)) < (readlen - prevreadlen) )
 	    {
@@ -234,7 +231,7 @@ ms_readmsr (char *msfile, int reclen, off_t *fpos, int *last,
   for (;;)
     {
       if ( fpos != NULL )
-	*fpos = ftello (fp);
+	*fpos = lmp_ftello (fp);
       
       if ( (myfread (rawrec, 1, readlen, fp)) < readlen )
 	{

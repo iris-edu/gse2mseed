@@ -28,12 +28,10 @@
 extern "C" {
 #endif
 
-#include <stdio.h>
-#include <inttypes.h>
-#include <sys/types.h>
+#include "lmplatform.h"
 
-#define LIBMSEED_VERSION "1.2"
-#define LIBMSEED_RELEASE "2005.269"
+#define LIBMSEED_VERSION "1.3"
+#define LIBMSEED_RELEASE "2005.271"
 
 #define MINRECLEN   256      /* Minimum Mini-SEED record length, 2^8 bytes */
 #define MAXRECLEN   1048576  /* Maximum Mini-SEED record length, 2^20 bytes */
@@ -76,7 +74,7 @@ extern "C" {
 #define MS_ISRATETOLERABLE(A,B) (ms_dabs (1.0 - (A / B)) < 0.0001)
 
 /* Require a large (>= 64-bit) integer type for hptime_t */
-typedef signed long long int hptime_t;
+typedef int64_t hptime_t;
 
 /* A single byte flag type */
 typedef int8_t flag;

@@ -8,7 +8,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center.
  *
- * modified 2005.201
+ * modified 2005.271
  ***************************************************************************/
 
 #include <stdio.h>
@@ -16,8 +16,12 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-#include <signal.h>
 #include <ctype.h>
+
+#ifndef WIN32
+  #include <signal.h>
+  static void term_handler (int sig);
+#endif
 
 #include <libmseed.h>
 
@@ -76,6 +80,7 @@ main (int argc, char **argv)
   int totalsamps = 0;
   off_t filepos  = 0;
 
+#ifndef WIN32
   /* Signal handling, use POSIX calls with standardized semantics */
   struct sigaction sa;
 
@@ -90,6 +95,7 @@ main (int argc, char **argv)
   sa.sa_handler = SIG_IGN;
   sigaction (SIGHUP, &sa, NULL);
   sigaction (SIGPIPE, &sa, NULL);
+#endif
 
   /* Process given parameters (command line and parameter file) */
   if (parameter_proc (argc, argv) < 0)
@@ -114,7 +120,7 @@ main (int argc, char **argv)
 	{
 	  bfp = stdout;
 	}
-      else if ( (bfp = fopen (binfile, "w")) == NULL )
+      else if ( (bfp = fopen (binfile, "wb")) == NULL )
 	{
 	  fprintf (stderr, "Cannot open binary data output file: %s (%s)\n",
 		   binfile, strerror(errno));
@@ -129,7 +135,7 @@ main (int argc, char **argv)
 	{
 	  ofp = stdout;
 	}
-      else if ( (ofp = fopen (outfile, "w")) == NULL )
+      else if ( (ofp = fopen (outfile, "wb")) == NULL )
 	{
 	  fprintf (stderr, "Cannot open output file: %s (%s)\n",
 		   outfile, strerror(errno));
@@ -450,6 +456,7 @@ getoptval (int argcount, char **argvec, int argopt)
   if ( argvec == NULL || argvec[argopt] == NULL ) {
     fprintf (stderr, "getoptval(): NULL option requested\n");
     exit (1);
+    return NULL;
   }
   
   /* Special case of '-o -' usage */
@@ -468,6 +475,7 @@ getoptval (int argcount, char **argvec, int argopt)
   
   fprintf (stderr, "Option %s requires a value\n", argvec[argopt]);
   exit (1);
+  return NULL;
 }  /* End of getoptval() */
 
 
@@ -583,6 +591,7 @@ usage (void)
 }  /* End of usage() */
 
 
+#ifndef WIN32
 /***************************************************************************
  * term_handler:
  * Signal handler routine for termination.
@@ -592,3 +601,4 @@ term_handler (int sig)
 {
   exit (0);
 }
+#endif

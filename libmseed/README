@@ -10,7 +10,8 @@ which has an unknown data structure by definition and Blockette 405
 which depends on full SEED (SEED including full ASCII headers) for a
 full data description.
 
-The library has been tested on Linux, Mac OSX (Darwin), and Solaris.
+The library has been tested in Linux, Mac OSX (Darwin), Solaris and
+Win32 environments.
 
 For installation instructions see the INSTALL file.  For further
 information regarding the library interface see the documentation in

@@ -21,8 +21,7 @@
  * Version: 2004.278
  ***************************************************************************/
 
-#include <memory.h>
-#include <inttypes.h>
+#include "lmplatform.h"
 
 /* Swap routines that work on any (aligned or not) quantities */
 

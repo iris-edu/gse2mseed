@@ -9,7 +9,7 @@
  *
  * Written by Chad Trabant, ORFEUS/EC-Project MEREDIAN
  *
- * modified 2005.201
+ * modified 2005.271
  ***************************************************************************/
 
 #include <stdio.h>
@@ -17,7 +17,11 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-#include <signal.h>
+
+#ifndef WIN32
+  #include <signal.h>
+  static void term_handler (int sig);
+#endif
 
 #include <libmseed.h>
 
@@ -55,6 +59,7 @@ main (int argc, char **argv)
   int lastrecord;
   int iseqnum = 1;
   
+#ifndef WIN32
   /* Signal handling, use POSIX calls with standardized semantics */
   struct sigaction sa;
   
@@ -69,6 +74,7 @@ main (int argc, char **argv)
   sa.sa_handler = SIG_IGN;
   sigaction (SIGHUP, &sa, NULL);
   sigaction (SIGPIPE, &sa, NULL);
+#endif
 
   /* Process given parameters (command line and parameter file) */
   if (parameter_proc (argc, argv) < 0)
@@ -270,7 +276,7 @@ parameter_proc (int argcount, char **argvec)
 	}
       else if (strcmp (argvec[optind], "-o") == 0)
 	{
-	  if ( (outfile = fopen(argvec[++optind], "w")) == NULL )
+	  if ( (outfile = fopen(argvec[++optind], "wb")) == NULL )
 	    {
 	      fprintf (stderr, "Error opening output file: %s\n",
 		       argvec[++optind]);
@@ -375,6 +381,7 @@ usage (void)
 }  /* End of usage() */
 
 
+#ifndef WIN32
 /***************************************************************************
  * term_handler:
  * Signal handler routine.
@@ -384,3 +391,4 @@ term_handler (int sig)
 {
   exit (0);
 }
+#endif

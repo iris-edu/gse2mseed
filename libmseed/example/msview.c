@@ -16,7 +16,11 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-#include <signal.h>
+
+#ifndef WIN32
+  #include <signal.h>
+  static void term_handler (int sig);
+#endif
 
 #include <libmseed.h>
 
@@ -42,6 +46,7 @@ main (int argc, char **argv)
   int totalrecs  = 0;
   int totalsamps = 0;
 
+#ifndef WIN32
   /* Signal handling, use POSIX calls with standardized semantics */
   struct sigaction sa;
 
@@ -56,6 +61,7 @@ main (int argc, char **argv)
   sa.sa_handler = SIG_IGN;
   sigaction (SIGHUP, &sa, NULL);
   sigaction (SIGPIPE, &sa, NULL);
+#endif
 
   /* Process given parameters (command line and parameter file) */
   if (parameter_proc (argc, argv) < 0)
@@ -177,6 +183,7 @@ usage (void)
 }  /* End of usage() */
 
 
+#ifndef WIN32
 /***************************************************************************
  * term_handler:
  * Signal handler routine. 
@@ -186,3 +193,4 @@ term_handler (int sig)
 {
   exit (0);
 }
+#endif
