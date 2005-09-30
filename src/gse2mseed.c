@@ -549,6 +549,7 @@ getoptval (int argcount, char **argvec, int argopt)
   if ( argvec == NULL || argvec[argopt] == NULL ) {
     fprintf (stderr, "getoptval(): NULL option requested\n");
     exit (1);
+    return 0;
   }
   
   /* Special case of '-o -' usage */
@@ -561,6 +562,7 @@ getoptval (int argcount, char **argvec, int argopt)
   
   fprintf (stderr, "Option %s requires a value\n", argvec[argopt]);
   exit (1);
+  return 0;
 }  /* End of getoptval() */
 
 

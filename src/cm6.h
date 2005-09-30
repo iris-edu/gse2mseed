@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#include <inttypes.h>
+#include <libmseed.h>
 
 /* Table of all possible CM6 characters */
 static char cm6table[64]= { '+','-','0','1','2','3','4','5','6','7',

@@ -18,7 +18,7 @@ INCS = -I..\libmseed
 all: $(BIN)
 
 $(BIN):	gse2mseed.obj cm6.obj
-	wlink $(lflags) name $(BIN) file {gse2mseed.obj}
+	wlink $(lflags) name $(BIN) file {gse2mseed.obj cm6.obj}
 
 # Source dependencies:
 gse2mseed.obj:	gse2mseed.c cm6.h
