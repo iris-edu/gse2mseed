@@ -13,7 +13,6 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-#include <signal.h>
 
 #include <libmseed.h>
 
@@ -28,7 +27,6 @@ static char *getoptval (int argcount, char **argvec, int argopt);
 static void addfile (char *filename);
 static void record_handler (char *record, int reclen);
 static void usage (void);
-static void term_handler (int sig);
 
 static int   verbose     = 0;
 static int   packreclen  = -1;
@@ -57,21 +55,6 @@ main (int argc, char **argv)
   int packedsamples = 0;
   int packedrecords = 0;
   
-  /* Signal handling, use POSIX calls with standardized semantics */
-  struct sigaction sa;
-  
-  sa.sa_flags = SA_RESTART;
-  sigemptyset (&sa.sa_mask);
-  
-  sa.sa_handler = term_handler;
-  sigaction (SIGINT, &sa, NULL);
-  sigaction (SIGQUIT, &sa, NULL);
-  sigaction (SIGTERM, &sa, NULL);
-  
-  sa.sa_handler = SIG_IGN;
-  sigaction (SIGHUP, &sa, NULL);
-  sigaction (SIGPIPE, &sa, NULL);
-
   /* Process given parameters (command line and parameter file) */
   if (parameter_proc (argc, argv) < 0)
     return -1;
@@ -667,14 +650,3 @@ usage (void)
 	   " 11 : Steim 2 compression\n"
 	   "\n");
 }  /* End of usage() */
-
-
-/***************************************************************************
- * term_handler:
- * Signal handler routine.
- ***************************************************************************/
-static void
-term_handler (int sig)
-{
-  exit (0);
-}
