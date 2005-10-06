@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center
  *
- * modified 2005.272
+ * modified 2005.279
  ***************************************************************************/
 
 #include <stdio.h>
@@ -18,24 +18,27 @@
 
 #include "cm6.h"
 
-#define VERSION "1.3"
+#define VERSION "1.4"
 #define PACKAGE "gse2mseed"
 
+static void packtraces (flag flush);
 static int gse2group (char *gsefile, TraceGroup *mstg);
 static int parameter_proc (int argcount, char **argvec);
 static char *getoptval (int argcount, char **argvec, int argopt);
+static int readlistfile (char *listfile);
 static void addfile (char *filename);
 static void record_handler (char *record, int reclen);
 static void usage (void);
 
 static int   verbose     = 0;
-static int   packreclen  = -1;
-static int   encoding    = -1;
-static int   byteorder   = -1;
 static int   ignorecs    = 0;
+static char  bufferall   = 0;
 static int   auxtoloc    = 0;
 static char *forcenet    = 0;
 static char *forceloc    = 0;
+static int   packreclen  = -1;
+static int   encoding    = -1;
+static int   byteorder   = -1;
 static char *outputfile  = 0;
 static FILE *ofp         = 0;
 
@@ -44,16 +47,20 @@ struct filelink {
   struct filelink *next;
 };
 
+/* A list of input files */
 struct filelink *filelist = 0;
+
+static TraceGroup *mstg = 0;
+
+static int packedtraces  = 0;
+static int packedsamples = 0;
+static int packedrecords = 0;
+
 
 int
 main (int argc, char **argv)
 {
   struct filelink *flp;
-  TraceGroup *mstg = 0;
-
-  int packedsamples = 0;
-  int packedrecords = 0;
   
   /* Process given parameters (command line and parameter file) */
   if (parameter_proc (argc, argv) < 0)
@@ -76,10 +83,6 @@ main (int argc, char **argv)
           return -1;
         }
     }
-  else
-    {
-      ofp = stdout;
-    }
   
   /* Read input GSE files into TraceGroup */
   flp = filelist;
@@ -93,20 +96,13 @@ main (int argc, char **argv)
       
       flp = flp->next;
     }
-
-  /* Pack data into Mini-SEED records */
-  packedrecords = mst_packgroup (mstg, &record_handler, packreclen, encoding, byteorder,
-				 &packedsamples, 1, verbose-1, NULL);
   
-  if ( packedrecords < 0 )
-    {
-      fprintf (stderr, "Error packing data\n");
-    }
-  else
-    {
-      fprintf (stderr, "Packed %d trace(s) of %d samples into %d records\n",
-	       mstg->numtraces, packedsamples, packedrecords);
-    }
+  /* Pack any remaining, possibly all data */
+  packtraces (1);
+  packedtraces += mstg->numtraces;
+  
+  fprintf (stderr, "Packed %d trace(s) of %d samples into %d records\n",
+           packedtraces, packedsamples, packedrecords);
   
   /* Make sure everything is cleaned up */
   mst_freegroup (&mstg);
@@ -116,6 +112,46 @@ main (int argc, char **argv)
   
   return 0;
 }  /* End of main() */
+
+
+/***************************************************************************
+ * packtraces:
+ *
+ * Pack all traces in a group.
+ *
+ * Returns 0 on success, and -1 on failure
+ ***************************************************************************/
+static void
+packtraces (flag flush)
+{
+  Trace *mst;
+  int trpackedsamples = 0;
+  int trpackedrecords = 0;
+  
+  mst = mstg->traces;
+  while ( mst )
+    {
+      if ( mst->numsamples <= 0 )
+        {
+          mst = mst->next;
+          continue;
+        }
+      
+      trpackedrecords = mst_pack (mst, &record_handler, packreclen, encoding, byteorder,
+                                  &trpackedsamples, flush, verbose-2, NULL);
+      if ( trpackedrecords < 0 )
+        {
+          fprintf (stderr, "Error packing data\n");
+        }
+      else
+        {
+          packedrecords += trpackedrecords;
+          packedsamples += trpackedsamples;
+        }
+      
+      mst = mst->next;
+    }
+}  /* End of packtraces() */
 
 
 /***************************************************************************
@@ -158,6 +194,34 @@ gse2group (char *gsefile, TraceGroup *mstg)
       return -1;
     }
   
+  /* Open .mseed output file if needed, replacing .gse if present */
+  if ( ! ofp )
+    {
+      char mseedoutputfile[1024];
+      int filelen;
+      strncpy (mseedoutputfile, gsefile, sizeof(mseedoutputfile)-6 );
+      filelen = strlen (mseedoutputfile);
+      
+      /* Truncate file name if .gse is at the end */
+      if ( filelen > 4 )
+	if ( (*(mseedoutputfile + filelen - 1) == 'e' || *(mseedoutputfile + filelen - 1) == 'E') &&
+	     (*(mseedoutputfile + filelen - 2) == 's' || *(mseedoutputfile + filelen - 2) == 'S') &&
+	     (*(mseedoutputfile + filelen - 3) == 'g' || *(mseedoutputfile + filelen - 3) == 'G') &&
+	     (*(mseedoutputfile + filelen - 4) == '.') )
+	  {
+	    *(mseedoutputfile + filelen - 4) = '\0';
+	  }
+
+      strcat (mseedoutputfile, ".mseed");
+      
+      if ( (ofp = fopen (mseedoutputfile, "wb")) == NULL )
+        {
+          fprintf (stderr, "Cannot open output file: %s (%s)\n",
+                   mseedoutputfile, strerror(errno));
+          return -1;
+        }
+    }
+
   if ( ! (msr = msr_init(msr)) )
     {
       fprintf (stderr, "Cannot initialize MSrecord strcture\n");
@@ -283,15 +347,15 @@ gse2group (char *gsefile, TraceGroup *mstg)
 	  if ( verbose >= 3 )
 	    {
 	      int tint;
-
-	      printf ("[%s] %s %s: First 6 samples:\n",
-		      gsefile, msr->station, msr->channel);
+	      
+	      fprintf (stderr, "[%s] %s %s: First 6 samples:\n",
+		       gsefile, msr->station, msr->channel);
 	      
 	      for ( tint = 0; tint < 6; tint++ )
 		{
-		  printf ("%10d ", *(intbuf+tint));
+		  fprintf (stderr, "%10d ", *(intbuf+tint));
 		}
-	      printf ("\n");
+	      fprintf (stderr, "\n");
 	    }
 	  
 	  /* Compute chksum and compare */
@@ -400,6 +464,7 @@ gse2group (char *gsefile, TraceGroup *mstg)
 	      intbufsize++;
 	    }
 	}
+
       if ( blockend )
 	{
 	  /* Add data to TraceGroup */
@@ -419,16 +484,33 @@ gse2group (char *gsefile, TraceGroup *mstg)
 	      fprintf (stderr, "[%s] Error adding samples to TraceGroup\n", gsefile);
 	    }
 	  
+	  /* Unless buffering all files in memory pack any Traces now */
+          if ( ! bufferall )
+            {
+              packtraces (1);
+              packedtraces += mstg->numtraces;
+              mst_initgroup (mstg);
+            }
+
 	  /* Cleanup and reset state */
 	  msr->datasamples = 0;
 	  msr = msr_init (msr);
+
 	  cm6bufsize = 0;
 	  intbufsize = 0;
 	  ochksum = 0;
 	  blockend = 0;
 	}
     }
-      
+
+  fclose (ifp);
+  
+  if ( ofp  && ! outputfile )
+    {
+      fclose (ofp);
+      ofp = 0;
+    }
+
   if ( cm6buf )
     free (cm6buf);
   
@@ -470,6 +552,18 @@ parameter_proc (int argcount, char **argvec)
 	{
 	  verbose += strspn (&argvec[optind][1], "v");
 	}
+      else if (strcmp (argvec[optind], "-i") == 0)
+	{
+	  ignorecs = 1;
+	}
+      else if (strcmp (argvec[optind], "-B") == 0)
+	{
+	  bufferall = 1;
+	}
+      else if (strcmp (argvec[optind], "-a") == 0)
+	{
+	  auxtoloc = 1;
+	}
       else if (strcmp (argvec[optind], "-n") == 0)
 	{
 	  forcenet = getoptval(argcount, argvec, optind++);
@@ -477,14 +571,6 @@ parameter_proc (int argcount, char **argvec)
       else if (strcmp (argvec[optind], "-l") == 0)
 	{
 	  forceloc = getoptval(argcount, argvec, optind++);
-	}
-      else if (strcmp (argvec[optind], "-a") == 0)
-	{
-	  auxtoloc = 1;
-	}
-      else if (strcmp (argvec[optind], "-i") == 0)
-	{
-	  ignorecs = 1;
 	}
       else if (strcmp (argvec[optind], "-r") == 0)
 	{
@@ -513,8 +599,15 @@ parameter_proc (int argcount, char **argvec)
 	  addfile (argvec[optind]);
 	}
     }
-
-  /* Make sure an input files were specified */
+  
+  /* Make sure an output file is specified if buffering all */
+  if ( bufferall && ! outputfile )
+    {
+      fprintf (stderr, "Need to specify output file with -o if using -B\n");
+      exit(1);
+    }
+  
+  /* Make sure input files were specified */
   if ( filelist == 0 )
     {
       fprintf (stderr, "No input files were specified\n\n");
@@ -522,11 +615,44 @@ parameter_proc (int argcount, char **argvec)
       fprintf (stderr, "Try %s -h for usage\n", PACKAGE);
       exit (1);
     }
-
+  
   /* Report the program version */
   if ( verbose )
     fprintf (stderr, "%s version: %s\n", PACKAGE, VERSION);
-
+  
+  /* Check the input files for any list files, if any are found
+   * remove them from the list and add the contained list */
+  if ( filelist )
+    {
+      struct filelink *prevlp, *lp;
+      
+      prevlp = lp = filelist;
+      while ( lp != 0 )
+	{
+	  if ( *(lp->filename) == '@' )
+	    {
+	      /* Remove this node from the list */
+	      if ( lp == filelist )
+		filelist = lp->next;
+	      else
+		prevlp->next = lp->next;
+	      
+	      /* Read list file, skip the '@' first character */
+	      readlistfile (lp->filename + 1);
+	      
+	      /* Free memory for this node */
+	      free (lp->filename);
+	      free (lp);
+	    }
+	  else
+	    {
+	      prevlp = lp;
+	    }
+	  
+	  lp = lp->next;
+	}
+    }
+  
   return 0;
 }  /* End of parameter_proc() */
 
@@ -564,6 +690,91 @@ getoptval (int argcount, char **argvec, int argopt)
   exit (1);
   return 0;
 }  /* End of getoptval() */
+
+
+/***************************************************************************
+ * readlistfile:
+ * Read a list of files from a file and add them to the filelist for
+ * input data.
+ *
+ * Returns the number of file names parsed from the list or -1 on error.
+ ***************************************************************************/
+static int
+readlistfile (char *listfile)
+{
+  FILE *fp;
+  char line[1024];
+  char *ptr;
+  int  filecnt = 0;
+  int  nonspace;
+
+  char filename[1024];
+  int  fields;
+  
+  /* Open the list file */
+  if ( (fp = fopen (listfile, "rb")) == NULL )
+    {
+      if (errno == ENOENT)
+        {
+          fprintf (stderr, "Could not find list file %s\n", listfile);
+          return -1;
+        }
+      else
+        {
+          fprintf (stderr, "Error opening list file %s: %s\n",
+                   listfile, strerror (errno));
+          return -1;
+        }
+    }
+  
+  if ( verbose )
+    fprintf (stderr, "Reading list of input files from %s\n", listfile);
+  
+  while ( (fgets (line, sizeof(line), fp)) !=  NULL)
+    {
+      /* Truncate line at first \r or \n and count non-space characters */
+      nonspace = 0;
+      ptr = line;
+      while ( *ptr )
+        {
+          if ( *ptr == '\r' || *ptr == '\n' || *ptr == '\0' )
+            {
+              *ptr = '\0';
+              break;
+            }
+          else if ( *ptr != ' ' )
+            {
+              nonspace++;
+            }
+          
+          ptr++;
+        }
+      
+      /* Skip empty lines */
+      if ( nonspace == 0 )
+        continue;
+      
+      fields = sscanf (line, "%s", filename);
+      
+      if ( fields != 1 )
+	{
+	  fprintf (stderr, "Error parsing filename from: %s\n", line);
+	  continue;
+	}
+      
+      if ( verbose > 1 )
+	fprintf (stderr, "Adding '%s' to input file list\n", filename);
+      
+      addfile (filename);
+      filecnt++;
+      
+      continue;
+    }
+  
+  fclose (fp);
+  
+  return filecnt;
+}  /* End readlistfile() */
 
 
 /***************************************************************************
@@ -625,25 +836,28 @@ static void
 usage (void)
 {
   fprintf (stderr, "%s version: %s\n\n", PACKAGE, VERSION);
-  fprintf (stderr, "Convert GSE2.x/IMS1.0 CM6 and INT waveform data to Mini-SEED.\n");
+  fprintf (stderr, "Convert GSE2.x/IMS1.0 INT and CM6 waveform data to Mini-SEED.\n");
   fprintf (stderr, "GSE structures recognized: WID2, STA2, DAT2 and CHK2, all other\n");
   fprintf (stderr, "information in the input file(s) is ignored.\n\n");
-  fprintf (stderr, "Usage: %s [options] file1 file2 file3...\n\n", PACKAGE);
+  fprintf (stderr, "Usage: %s [options] file1 [file2 file3 ...]\n\n", PACKAGE);
   fprintf (stderr,
 	   " ## Options ##\n"
 	   " -V             Report program version\n"
 	   " -h             Show this usage message\n"
 	   " -v             Be more verbose, multiple flags can be used\n"
-	   " -n netcode     Force the SEED network code\n"
-	   " -l loccode     Force the SEED location code\n"
-	   " -a             Map GSE auxiliary id code to SEED location id code\n"
 	   " -i             Ignore GSE checksum mismatch, warn but continue\n"
+	   " -B             Buffer data before packing, default packs at end of each block\n"
+	   " -a             Map GSE auxiliary id code to SEED location id code\n"
+	   " -n netcode     Specify the SEED network code\n"
+	   " -l loccode     Specify the SEED location code\n"
 	   " -r bytes       Specify record length in bytes for packing, default: 4096\n"
 	   " -e encoding    Specify SEED encoding format for packing, default: 11 (Steim2)\n"
 	   " -b byteorder   Specify byte order for packing, MSBF: 1 (default), LSBF: 0\n"
 	   " -o outfile     Specify the output file, default is stdout.\n"
 	   "\n"
 	   " file(s)        File(s) of GSE input data\n"
+           "                  If a file is prefixed with an '@' it is assumed to contain\n"
+           "                  a list of data files to be read, one file per line.\n"
 	   "\n"
 	   "Supported Mini-SEED encoding formats:\n"
 	   " 1  : 16-bit integers (only works if samples can be represented in 16-bits)\n"

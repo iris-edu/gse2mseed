@@ -1,3 +1,13 @@
+2005.279: 1.4
+	- Add list file reading, if an input file is prefixed with a '@'
+	character it should contain a list of input files.
+	- By default write output files with the same name as the input
+	files with ".mseed" suffix, replacing ".gse" if it's there.
+	- Pack Traces at the end of each block, add option to buffer all
+	data and only pack at the end.
+	- flose() each input file when done reading it.
+	- Add man page.
+
 2005.272: 1.3
 	- Update libmseed to 1.3 with support for Win32.
 	- Add Makefile.w* for Win32.
