@@ -16,6 +16,8 @@ For Win32 Open Watcom's wmake program can be used with Makefile.wat
 Watcom 1.3.  Some untested Makefile.win files exist that might work
 with Microsoft's nmake program.
 
+For usage information see the man page in the doc directory.
+
 -- Licensing --
 
 This program is free software; you can redistribute it and/or modify
