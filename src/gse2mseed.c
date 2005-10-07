@@ -853,7 +853,7 @@ usage (void)
 	   " -r bytes       Specify record length in bytes for packing, default: 4096\n"
 	   " -e encoding    Specify SEED encoding format for packing, default: 11 (Steim2)\n"
 	   " -b byteorder   Specify byte order for packing, MSBF: 1 (default), LSBF: 0\n"
-	   " -o outfile     Specify the output file, default is stdout.\n"
+	   " -o outfile     Specify the output file, default is <inputfile>.mseed\n"
 	   "\n"
 	   " file(s)        File(s) of GSE input data\n"
            "                  If a file is prefixed with an '@' it is assumed to contain\n"
