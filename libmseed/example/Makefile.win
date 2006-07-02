@@ -11,14 +11,11 @@ NODEBUG=1
 
 INCS = /I..
 LIBS = ../libmseed.lib
-BINS = msi.exe msrepack.exe msview.exe
+BINS = msrepack.exe msview.exe
 
 cflags = $(cflags) -DWIN32
 
 all: $(BINS)
-
-msi.exe:	msi.obj
-	link.exe /nologo /out:msi $(LIBS) msi.obj
 
 msrepack.exe:	msrepack.obj
 	link.exe /nologo /out:msrepack $(LIBS) msrepack.obj

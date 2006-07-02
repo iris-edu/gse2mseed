@@ -9,7 +9,7 @@
  *
  * Written by Chad Trabant, ORFEUS/EC-Project MEREDIAN
  *
- * modified 2005.271
+ * modified 2006.172
  ***************************************************************************/
 
 #include <stdio.h>
@@ -47,9 +47,10 @@ static void term_handler (int sig);
 int
 main (int argc, char **argv)
 {
-  MSrecord *msr = 0;
-  TraceGroup *mstg = 0;
-  Trace *tp;
+  MSRecord *msr = 0;
+  MSTraceGroup *mstg = 0;
+  MSTrace *tp;
+  int retcode;
 
   char envvariable[100];
   int totalrecs  = 0;
@@ -75,7 +76,7 @@ main (int argc, char **argv)
   sigaction (SIGHUP, &sa, NULL);
   sigaction (SIGPIPE, &sa, NULL);
 #endif
-
+  
   /* Process given parameters (command line and parameter file) */
   if (parameter_proc (argc, argv) < 0)
     return -1;
@@ -92,11 +93,12 @@ main (int argc, char **argv)
 	}
     }
   
-  /* Init TraceGroup */
+  /* Init MSTraceGroup */
   mstg = mst_initgroup (mstg);
   
   /* Loop over the input file */
-  while ( (msr = ms_readmsr (inputfile, reclen, NULL, &lastrecord, 1, 1, verbose)) )
+  while ( (retcode = ms_readmsr (&msr, inputfile, reclen, NULL, &lastrecord,
+				 1, 1, verbose)) == MS_NOERROR )
     {
       totalrecs++;
       totalsamps += msr->samplecnt;
@@ -135,14 +137,14 @@ main (int argc, char **argv)
 	  msr_pack_header (msr, verbose);
 	  record_handler (msr->record, msr->reclen);
 	}
-
+      
       /* Pack each record individually */
       else if ( outfile && ! tracepack )
 	{
 	  msr->sequence_number = iseqnum;
-
+	  
 	  packedrecords = msr_pack (msr, &record_handler, &packedsamples, 1, verbose);
-
+	  
 	  if ( packedrecords == -1 )
 	    printf ("Error packing records\n"); 
 	  else
@@ -151,10 +153,10 @@ main (int argc, char **argv)
 	  iseqnum = msr->sequence_number;
 	}
       
-      /* Pack records from a TraceGroup */
+      /* Pack records from a MSTraceGroup */
       else if ( outfile && tracepack )
 	{
-	  mst_addmsrtogroup (mstg, msr, -1.0, -1.0);
+	  mst_addmsrtogroup (mstg, msr, 0, -1.0, -1.0);
 	  
 	  packedrecords = 0;
 	  
@@ -188,7 +190,7 @@ main (int argc, char **argv)
 	      printf ("Packed %d records\n", packedrecords);
 	    }
 
-	  /* Reset sequence numbers in Trace holder from template */
+	  /* Reset sequence numbers in MSTrace holder from template */
 	  tp = mstg->traces;
 	  while ( tp )
 	    {
@@ -198,8 +200,11 @@ main (int argc, char **argv)
 	}
     }
   
+  if ( retcode != MS_ENDOFFILE )
+    fprintf (stderr, "Error reading file (%d): %s\n", retcode, inputfile);
+  
   /* Make sure everything is cleaned up */
-  ms_readmsr (NULL, 0, NULL, NULL, 0, 0, 0);
+  ms_readmsr (&msr, NULL, 0, NULL, NULL, 0, 0, 0);
   mst_freegroup (&mstg);
   
   if ( outfile )

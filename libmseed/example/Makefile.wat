@@ -11,14 +11,11 @@ cflags = -zq
 lflags = OPT quiet OPT map LIBRARY ..\libmseed.lib
 cvars  = $+$(cvars)$- -DWIN32
 
-BINS = msi.exe msrepack.exe msview.exe
+BINS = msrepack.exe msview.exe
 
 INCS = -I..
 
 all: $(BINS)
-
-msi.exe:	msi.obj
-	wlink $(lflags) name msi file {msi.obj}
 
 msrepack.exe:	msrepack.obj
 	wlink $(lflags) name msrepack file {msrepack.obj}
@@ -27,7 +24,6 @@ msview.exe:	msview.obj
 	wlink $(lflags) name msview file {msview.obj}
 
 # Source dependencies:
-msi.obj:	msi.c
 msrepack.obj:	msrepack.c
 msview.obj:	msview.c
 

@@ -16,11 +16,6 @@ Makefile is provided to build the program.  The example does not
 exercise all of the functionality of libmseed but should illustrate
 some of the basic ideas.
 
-msi.c:
-
-Mini-SEED Inspector: A more complicated (and useful) example
-demonstrating use of libmseed.
-
 msrepack.c:
 
 An example of using libmseed to build Mini-SEED records, this 

@@ -7,7 +7,7 @@
  * ORFEUS/EC-Project MEREDIAN
  * IRIS Data Management Center
  *
- * modified: 2005.091
+ * modified: 2006.107
  ***************************************************************************/
 
 #include <stdio.h>
@@ -19,80 +19,6 @@
 
 static hptime_t ms_time2hptime_int (int year, int day, int hour,
 				    int min, int sec, int usec);
-
-/*********************************************************************
- * ms_find_reclen:
- *
- * Search for a 1000 blockette in a MiniSEED data record up to
- * maxheaderlen bytes and return the record size.
- *
- * Returns size of the record in bytes, 0 if 1000 blockette was not
- * found or -1 on error.
- *********************************************************************/
-int
-ms_find_reclen ( const char *msrecord, int maxheaderlen )
-{
-  uint16_t blkt_offset;    /* Byte offset for next blockette */
-  uint8_t swapflag  = 0;   /* Byte swapping flag */
-  uint8_t found1000 = 0;   /* Found 1000 blockette flag */
-  int32_t reclen = -1;     /* Size of record in bytes */
-  
-  uint16_t blkt_type;
-  uint16_t next_blkt;
-  
-  struct fsdh_s *fsdh;
-  struct blkt_1000_s *blkt_1000;
-  
-  /* Simple verification of a data record */
-  if ( ! MS_ISDATAINDICATOR(*(msrecord+6)) )
-    return -1;
-  
-  fsdh = (struct fsdh_s *) msrecord;
-  
-  /* Check to see if byte swapping is needed (bogus year makes good test) */
-  if ( (fsdh->start_time.year < 1900) ||
-       (fsdh->start_time.year > 2050) )
-    swapflag = 1;
-  
-  blkt_offset = fsdh->blockette_offset;
-  
-  /* Swap order of blkt_offset if needed */
-  if ( swapflag ) gswap2 (&blkt_offset);
-  
-  /* loop through blockettes as long as number is non-zero and viable */
-  while ((blkt_offset != 0) &&
-         (blkt_offset <= maxheaderlen))
-    {
-      memcpy (&blkt_type, msrecord + blkt_offset, 2);
-      memcpy (&next_blkt, msrecord + blkt_offset + 2, 2);
-      
-      if ( swapflag )
-	{
-	  gswap2 (&blkt_type);
-	  gswap2 (&next_blkt);
-	}
-      
-      if (blkt_type == 1000)  /* Found the 1000 blockette */
-        {
-          blkt_1000 = (struct blkt_1000_s *) (msrecord + blkt_offset + 4);
-	  
-          found1000 = 1;
-	  
-          /* Calculate record size in bytes as 2^(blkt_1000->reclen) */
-	  reclen = (unsigned int) 1 << blkt_1000->reclen;
-
-	  break;
-        }
-      
-      blkt_offset = next_blkt;
-    }
-  
-  if ( !found1000 )
-    return 0;
-  else
-    return reclen;
-}  /* End of ms_find_reclen() */
-
 
 /***************************************************************************
  * ms_strncpclean:
@@ -347,11 +273,6 @@ ms_btime2hptime (BTime *btime)
   hptime = (hptime_t ) (60 * (60 * (24 * days + btime->hour) + btime->min) + btime->sec) * HPTMODULUS
     + (btime->fract * (HPTMODULUS / 10000));
     
-  /*
-  printf ("DB: y: %d, d: %d, h: %d, m: %d, s:%d, f:%d\nhptime: %lld\n",
-	  btime->year, btime->day, btime->hour, btime->min, btime->sec, btime->fract, hptime);
-  */
-
   return hptime;
 }  /* End of ms_btime2hptime() */
 

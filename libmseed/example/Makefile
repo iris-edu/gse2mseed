@@ -9,19 +9,16 @@ GCCFLAGS = -O2 -Wall -I..
 LDFLAGS = -L..
 LDLIBS = -lmseed
 
-all: msview msi msrepack
+all: msview msrepack
 
 msview: msview.o
 	$(CC) $(CFLAGS) -o $@ msview.o $(LDFLAGS) $(LDLIBS)
-
-msi: msi.o
-	$(CC) $(CFLAGS) -o $@ msi.o $(LDFLAGS) $(LDLIBS)
 
 msrepack: msrepack.o
 	$(CC) $(CFLAGS) -o $@ msrepack.o $(LDFLAGS) $(LDLIBS)
 
 clean:
-	rm -f msview.o msview msi.o msi msrepack.o msrepack mstest.o mstest
+	rm -f msview.o msview msrepack.o msrepack mstest.o mstest
 
 cc:
 	@$(MAKE) "CC=$(CC)" "CFLAGS=$(CFLAGS)"

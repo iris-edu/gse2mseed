@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, ORFEUS/EC-Project MEREDIAN
  *
- * modified: 2005.203
+ * modified: 2006.172
  ***************************************************************************/
 
 #include <stdio.h>
@@ -22,22 +22,22 @@
 /***************************************************************************
  * msr_init:
  *
- * Initialize and return an MSrecord struct, allocating memory if
+ * Initialize and return an MSRecord struct, allocating memory if
  * needed.  If memory for the fsdh and datasamples fields has been
  * allocated the pointers will be retained for reuse.  If a blockette
  * chain is present all associated memory will be released.
  *
- * Returns a pointer to a MSrecord struct on success or NULL on error.
+ * Returns a pointer to a MSRecord struct on success or NULL on error.
  ***************************************************************************/
-MSrecord *
-msr_init ( MSrecord *msr )
+MSRecord *
+msr_init ( MSRecord *msr )
 {
   void *fsdh = 0;
   void *datasamples = 0;
   
   if ( ! msr )
     {
-      msr = (MSrecord *) malloc (sizeof(MSrecord));
+      msr = (MSRecord *) malloc (sizeof(MSRecord));
     }
   else
     {
@@ -54,7 +54,7 @@ msr_init ( MSrecord *msr )
       return NULL;
     }
   
-  memset (msr, 0, sizeof (MSrecord));
+  memset (msr, 0, sizeof (MSRecord));
   
   msr->fsdh = fsdh;
   msr->datasamples = datasamples;
@@ -63,7 +63,6 @@ msr_init ( MSrecord *msr )
   msr->samplecnt = -1;
   msr->byteorder = -1;
   msr->encoding = -1;
-  msr->unpackerr = MS_NOERROR;
   
   return msr;
 } /* End of msr_init() */
@@ -72,10 +71,10 @@ msr_init ( MSrecord *msr )
 /***************************************************************************
  * msr_free:
  *
- * Free all memory associated with a MSrecord struct.
+ * Free all memory associated with a MSRecord struct.
  ***************************************************************************/
 void
-msr_free ( MSrecord **ppmsr )
+msr_free ( MSRecord **ppmsr )
 {
   if ( ppmsr != NULL && *ppmsr != 0 )
     {      
@@ -101,12 +100,12 @@ msr_free ( MSrecord **ppmsr )
 /***************************************************************************
  * msr_free_blktchain:
  *
- * Free all memory associated with a blockette chain in a MSrecord
- * struct and set MSrecord->blkts to NULL.  Also reset the shortcut
+ * Free all memory associated with a blockette chain in a MSRecord
+ * struct and set MSRecord->blkts to NULL.  Also reset the shortcut
  * blockette pointers.
  ***************************************************************************/
 void
-msr_free_blktchain ( MSrecord *msr )
+msr_free_blktchain ( MSRecord *msr )
 {
   if ( msr )
     {
@@ -140,7 +139,7 @@ msr_free_blktchain ( MSrecord *msr )
 /***************************************************************************
  * msr_addblockette:
  *
- * Add a blockette to the blockette chain of an MSrecord.  'blktdata'
+ * Add a blockette to the blockette chain of an MSRecord.  'blktdata'
  * should be the body of the blockette type 'blkttype' of 'length'
  * bytes without the blockette header (type and next offsets).  The
  * 'chainpos' value controls which end of the chain the blockette is
@@ -152,7 +151,7 @@ msr_free_blktchain ( MSrecord *msr )
  * NULL on error.
  ***************************************************************************/
 BlktLink *
-msr_addblockette (MSrecord *msr, char *blktdata, int length, int blkttype,
+msr_addblockette (MSRecord *msr, char *blktdata, int length, int blkttype,
 		  int chainpos)
 {
   BlktLink *blkt;
@@ -241,7 +240,7 @@ msr_addblockette (MSrecord *msr, char *blktdata, int length, int blkttype,
  * msr_samprate:
  *
  * Calculate and return a double precision sample rate for the
- * specified MSrecord.  If a Blockette 100 was included and parsed,
+ * specified MSRecord.  If a Blockette 100 was included and parsed,
  * the "Actual sample rate" (field 3) will be returned, otherwise a
  * nominal sample rate will be calculated from the sample rate factor
  * and multiplier in the fixed section data header.
@@ -249,7 +248,7 @@ msr_addblockette (MSrecord *msr, char *blktdata, int length, int blkttype,
  * Returns the positive sample rate on success and -1.0 on error.
  ***************************************************************************/
 double
-msr_samprate (MSrecord *msr)
+msr_samprate (MSRecord *msr)
 {
   if ( ! msr )
     return -1.0;
@@ -266,12 +265,12 @@ msr_samprate (MSrecord *msr)
  *
  * Calculate a double precision nominal sample rate from the sample
  * rate factor and multiplier in the FSDH struct of the specified
- * MSrecord.
+ * MSRecord.
  *
  * Returns the positive sample rate on success and -1.0 on error.
  ***************************************************************************/
 double
-msr_nomsamprate (MSrecord *msr)
+msr_nomsamprate (MSRecord *msr)
 {
   double samprate = 0.0;
   int factor;
@@ -300,7 +299,7 @@ msr_nomsamprate (MSrecord *msr)
 /***************************************************************************
  * msr_starttime:
  *
- * Convert a btime struct of a FSDH struct of a MSrecord (the record
+ * Convert a btime struct of a FSDH struct of a MSRecord (the record
  * start time) into a high precision epoch time and apply time
  * corrections if any are specified in the header and bit 1 of the
  * activity flags indicates that it has not already been applied.  If
@@ -311,7 +310,7 @@ msr_nomsamprate (MSrecord *msr)
  * error.
  ***************************************************************************/
 hptime_t
-msr_starttime (MSrecord *msr)
+msr_starttime (MSRecord *msr)
 {
   double starttime = msr_starttime_uc (msr);
   
@@ -340,7 +339,7 @@ msr_starttime (MSrecord *msr)
 /***************************************************************************
  * msr_starttime_uc:
  *
- * Convert a btime struct of a FSDH struct of a MSrecord (the record
+ * Convert a btime struct of a FSDH struct of a MSRecord (the record
  * start time) into a high precision epoch time.  This time has no
  * correction(s) applied to it.
  *
@@ -348,7 +347,7 @@ msr_starttime (MSrecord *msr)
  * error.
  ***************************************************************************/
 hptime_t
-msr_starttime_uc (MSrecord *msr)
+msr_starttime_uc (MSRecord *msr)
 {
   if ( ! msr )
     return HPTERROR;
@@ -371,14 +370,14 @@ msr_starttime_uc (MSrecord *msr)
  * on success and HPTERROR on error.
  ***************************************************************************/
 hptime_t
-msr_endtime (MSrecord *msr)
+msr_endtime (MSRecord *msr)
 {
   hptime_t span = 0;
   
   if ( ! msr )
     return HPTERROR;
-  
-  if ( msr->samprate > 0.0 )
+
+  if ( msr->samprate > 0.0 && msr->samplecnt > 0 )
     span = ((double) (msr->samplecnt - 1) / msr->samprate * HPTMODULUS) + 0.5;
   
   return (msr->starttime + span);
@@ -388,14 +387,14 @@ msr_endtime (MSrecord *msr)
 /***************************************************************************
  * msr_srcname:
  *
- * Generate a source name string for a specified MSrecord in the
+ * Generate a source name string for a specified MSRecord in the
  * format: 'NET_STA_LOC_CHAN'.  The passed srcname must have enough
  * room for the resulting string.
  *
  * Returns a pointer to the resulting string or NULL on error.
  ***************************************************************************/
 char *
-msr_srcname (MSrecord *msr, char *srcname)
+msr_srcname (MSRecord *msr, char *srcname)
 {
   if ( msr == NULL )
     return NULL;
@@ -412,14 +411,14 @@ msr_srcname (MSrecord *msr, char *srcname)
 /***************************************************************************
  * msr_print:
  *
- * Prints header values in an MSrecord struct, if 'details' is greater
+ * Prints header values in an MSRecord struct, if 'details' is greater
  * than 0 then detailed information about each blockette is printed.
  * If 'details' is greater than 1 very detailed information is
  * printed.  If no FSDH (msr->fsdh) is present only a single line with
  * basic information is printed.
  ***************************************************************************/
 void
-msr_print (MSrecord *msr, flag details)
+msr_print (MSRecord *msr, flag details)
 {
   double nomsamprate;
   char srcname[50];
@@ -442,7 +441,7 @@ msr_print (MSrecord *msr, flag details)
     {
       nomsamprate = msr_nomsamprate (msr);
       
-      printf ("%s, %06d, %c\n", srcname, msr->sequence_number, msr->drec_indicator);
+      printf ("%s, %06d, %c\n", srcname, msr->sequence_number, msr->dataquality);
       printf ("             start time: %s\n", time);
       printf ("      number of samples: %d\n", msr->fsdh->numsamples);
       printf ("     sample rate factor: %d  (%.10g samples per second)\n",
@@ -501,8 +500,9 @@ msr_print (MSrecord *msr, flag details)
     }
   else
     {
-      printf ("%s, %06d, %c, %d samples, %-.10g Hz, time: %s\n",
-	      srcname, msr->sequence_number, msr->drec_indicator, msr->samplecnt, msr->samprate, time);
+      printf ("%s, %06d, %c, %d, %d samples, %-.10g Hz, %s\n",
+	      srcname, msr->sequence_number, msr->dataquality,
+	      msr->reclen, msr->samplecnt, msr->samprate, time);
     }
 
   /* Report information in the blockette chain */
@@ -550,7 +550,7 @@ msr_print (MSrecord *msr, flag details)
 		  printf ("       event detection flags: [%u%u%u%u%u%u%u%u] 8 bits\n",
 			  bit(b,0x01), bit(b,0x02), bit(b,0x04), bit(b,0x08),
 			  bit(b,0x10), bit(b,0x20), bit(b,0x40), bit(b,0x80));
-		  if ( b & 0x01 ) printf ("                         [Bit 0] 1: Dilation wave\n");
+		  if ( b & 0x01 ) printf ("                         [Bit 0] 1: Dilatation wave\n");
 		  else            printf ("                         [Bit 0] 0: Compression wave\n");
 		  if ( b & 0x02 ) printf ("                         [Bit 1] 1: Units after deconvolution\n");
 		  else            printf ("                         [Bit 1] 0: Units are digital counts\n");
@@ -904,7 +904,7 @@ msr_print (MSrecord *msr, flag details)
  * 0.0 latency).
  ***************************************************************************/
 double
-msr_host_latency (MSrecord *msr)
+msr_host_latency (MSRecord *msr)
 {
   double span = 0.0;            /* Time covered by the samples */
   double epoch;                 /* Current epoch time */
@@ -915,7 +915,7 @@ msr_host_latency (MSrecord *msr)
     return 0.0;
   
   /* Calculate the time covered by the samples */
-  if ( msr->samprate > 0.0 )
+  if ( msr->samprate > 0.0 && msr->samplecnt > 0 )
     span = (1.0 / msr->samprate) * (msr->samplecnt - 1);
   
   /* Grab UTC time according to the system clock */

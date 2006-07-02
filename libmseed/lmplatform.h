@@ -18,7 +18,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center
  *
- * modified: 2005.271
+ * modified: 2006.082
  ***************************************************************************/
 
 #ifndef LMPLATFORM_H
@@ -32,8 +32,8 @@ extern "C" {
    * on the architecture.  Currently the assumptions are:
    * Linux => glibc2 (LMP_GLIBC2)
    * Sun => Solaris (LMP_SOLARIS)
-   * WIN32 => WIN32 and Windows Sockets 2 (LMP_WIN32)
    * Apple => Mac OS X (LMP_DARWIN)
+   * WIN32 => WIN32 and Windows Sockets 2 (LMP_WIN32)
    */
 
 #if defined(__linux__) || defined(__linux)
@@ -86,9 +86,11 @@ extern "C" {
   #include <stdarg.h>
   #include <winsock.h>
   #include <stdio.h>
+  #include <sys/types.h>
 
   #define snprintf _snprintf
   #define vsnprintf _vsnprintf
+  #define strcasecmp _stricmp
   #define strncasecmp _strnicmp
 
   typedef signed char int8_t;
@@ -99,8 +101,6 @@ extern "C" {
   typedef unsigned int uint32_t;
   typedef signed __int64 int64_t;
   typedef unsigned __int64 uint64_t;
-
-  typedef signed __int64 off_t;
 
 #else
   typedef signed char int8_t;
@@ -114,8 +114,9 @@ extern "C" {
 
 #endif
 
-extern const char *lmp_strerror(void);
-extern off_t lmp_ftello(FILE *stream);
+extern const char *lmp_strerror (void);
+extern off_t lmp_ftello (FILE *stream);
+extern int lmp_fseeko (FILE *stream, off_t offset, int whence);
 
 #ifdef __cplusplus
 }

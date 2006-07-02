@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center
  *
- * modified 2005.279
+ * modified 2006.183
  ***************************************************************************/
 
 #include <stdio.h>
@@ -18,11 +18,11 @@
 
 #include "cm6.h"
 
-#define VERSION "1.4"
+#define VERSION "1.5"
 #define PACKAGE "gse2mseed"
 
 static void packtraces (flag flush);
-static int gse2group (char *gsefile, TraceGroup *mstg);
+static int gse2group (char *gsefile, MSTraceGroup *mstg);
 static int parameter_proc (int argcount, char **argvec);
 static char *getoptval (int argcount, char **argvec, int argopt);
 static int readlistfile (char *listfile);
@@ -50,7 +50,7 @@ struct filelink {
 /* A list of input files */
 struct filelink *filelist = 0;
 
-static TraceGroup *mstg = 0;
+static MSTraceGroup *mstg = 0;
 
 static int packedtraces  = 0;
 static int packedsamples = 0;
@@ -66,7 +66,7 @@ main (int argc, char **argv)
   if (parameter_proc (argc, argv) < 0)
     return -1;
   
-  /* Init TraceGroup */
+  /* Init MSTraceGroup */
   mstg = mst_initgroup (mstg);
   
   /* Open the output file if specified otherwise stdout */
@@ -84,7 +84,7 @@ main (int argc, char **argv)
         }
     }
   
-  /* Read input GSE files into TraceGroup */
+  /* Read input GSE files into MSTraceGroup */
   flp = filelist;
   
   while ( flp != 0 )
@@ -124,7 +124,7 @@ main (int argc, char **argv)
 static void
 packtraces (flag flush)
 {
-  Trace *mst;
+  MSTrace *mst;
   int trpackedsamples = 0;
   int trpackedrecords = 0;
   
@@ -156,17 +156,17 @@ packtraces (flag flush)
 
 /***************************************************************************
  * gse2group:
- * Read a GSE file and add data samples to a TraceGroup.  As the GSE
- * is read in a MSrecord struct is used as a holder for the input
+ * Read a GSE file and add data samples to a MSTraceGroup.  As the GSE
+ * is read in a MSRecord struct is used as a holder for the input
  * information.
  *
  * Returns 0 on success, and -1 on failure
  ***************************************************************************/
 static int
-gse2group (char *gsefile, TraceGroup *mstg)
+gse2group (char *gsefile, MSTraceGroup *mstg)
 {
   FILE *ifp;
-  MSrecord *msr = 0;
+  MSRecord *msr = 0;
   char line[1025];
   int linesize;
 
@@ -224,7 +224,7 @@ gse2group (char *gsefile, TraceGroup *mstg)
 
   if ( ! (msr = msr_init(msr)) )
     {
-      fprintf (stderr, "Cannot initialize MSrecord strcture\n");
+      fprintf (stderr, "Cannot initialize MSRecord strcture\n");
       return -1;
     }
   
@@ -467,7 +467,7 @@ gse2group (char *gsefile, TraceGroup *mstg)
 
       if ( blockend )
 	{
-	  /* Add data to TraceGroup */
+	  /* Add data to MSTraceGroup */
 	  msr->datasamples = intbuf;
 	  msr->numsamples = intbufsize;
 	  msr->sampletype = 'i';
@@ -479,12 +479,12 @@ gse2group (char *gsefile, TraceGroup *mstg)
 		       msr->network, msr->station,  msr->location, msr->channel);
 	    }
 	  
-	  if ( ! mst_addmsrtogroup (mstg, msr, -1.0, -1.0) )
+	  if ( ! mst_addmsrtogroup (mstg, msr, 0, -1.0, -1.0) )
 	    {
-	      fprintf (stderr, "[%s] Error adding samples to TraceGroup\n", gsefile);
+	      fprintf (stderr, "[%s] Error adding samples to MSTraceGroup\n", gsefile);
 	    }
 	  
-	  /* Unless buffering all files in memory pack any Traces now */
+	  /* Unless buffering all files in memory pack any MSTraces now */
           if ( ! bufferall )
             {
               packtraces (1);
