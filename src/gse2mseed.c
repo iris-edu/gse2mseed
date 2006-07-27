@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center
  *
- * modified 2006.183
+ * modified 2006.208
  ***************************************************************************/
 
 #include <stdio.h>
@@ -18,7 +18,7 @@
 
 #include "cm6.h"
 
-#define VERSION "1.5"
+#define VERSION "1.6"
 #define PACKAGE "gse2mseed"
 
 static void packtraces (flag flush);

@@ -1,3 +1,10 @@
+2006.208: 1.6
+	- Update to libmseed 1.8.  Includes a memory leak fix.
+	- Add gcc32, gcc32debug and gcc64debug targets to Makefile.
+
+2006.???: 1.5
+	- Update to libmseed 1.7.	
+
 2005.279: 1.4
 	- Add list file reading, if an input file is prefixed with a '@'
 	character it should contain a list of input files.
