@@ -1,3 +1,8 @@
+2007.243:
+	- Test for both newline and carriage return characters for
+	end of line while reading data, allows working with GSE created
+	on MS-Windows.
+
 2006.208: 1.6
 	- Update to libmseed 1.8.  Includes a memory leak fix.
 	- Add gcc32, gcc32debug and gcc64debug targets to Makefile.

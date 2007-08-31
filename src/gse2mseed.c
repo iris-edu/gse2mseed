@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center
  *
- * modified 2006.208
+ * modified 2006.243
  ***************************************************************************/
 
 #include <stdio.h>
@@ -18,7 +18,7 @@
 
 #include "cm6.h"
 
-#define VERSION "1.6"
+#define VERSION "1.6+2007.243"
 #define PACKAGE "gse2mseed"
 
 static void packtraces (flag flush);
@@ -383,15 +383,16 @@ gse2group (char *gsefile, MSTraceGroup *mstg)
       else if ( expectdata )
 	{
 	  int datalinesize = 0;
+	  int spanned;
 	  char *tptr;
 	  
 	  datalinesize = linesize;
 	  
-	  /* Truncate at first newline character */
-	  if ( (tptr = strchr (line, '\n')) )
+	  /* Truncate at first newline or carriage return character */
+	  if ( (spanned = strcspn (line, "\n\r")) != datalinesize )
 	    {
-	      *tptr = '\0';
-	      datalinesize = tptr - line;
+	      line[spanned] = '\0';
+	      datalinesize = spanned;
 	    }
 	  
 	  /* Process CM6 data */
