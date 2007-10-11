@@ -1,5 +1,6 @@
 2007.284 1.7
 	- Update to libmseed 2.1.4.
+	- Change src/Makefile to use user defined CFLAGS when specified.
 
 2007.243:
 	- Test for both newline and carriage return characters for
