@@ -1,3 +1,6 @@
+2007.284 1.7
+	- Update to libmseed 2.1.4.
+
 2007.243:
 	- Test for both newline and carriage return characters for
 	end of line while reading data, allows working with GSE created

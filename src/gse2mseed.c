@@ -18,7 +18,7 @@
 
 #include "cm6.h"
 
-#define VERSION "1.6+2007.243"
+#define VERSION "1.7"
 #define PACKAGE "gse2mseed"
 
 static void packtraces (flag flush);
