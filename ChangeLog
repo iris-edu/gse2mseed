@@ -1,4 +1,8 @@
-2007.284 1.7
+2008.220: 1.8
+        - Update libmseed to 2.1.6, including much improved Steim 1
+        and 2 encoding performance.
+
+2007.284: 1.7
 	- Update to libmseed 2.1.4.
 	- Change src/Makefile to use user defined CFLAGS when specified.
 
