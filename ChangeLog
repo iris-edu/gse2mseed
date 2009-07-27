@@ -1,3 +1,9 @@
+2009.208: 1.9
+	- Update libmseed to 2.3.
+	- Improve parsing header lines to avoid confusion with data
+	lines that might include the same characters as reported by
+	Roman Racine.
+
 2008.220: 1.8
         - Update libmseed to 2.1.6, including much improved Steim 1
         and 2 encoding performance.
