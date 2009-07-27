@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center
  *
- * modified 2007.284
+ * modified 2009.208
  ***************************************************************************/
 
 #include <stdio.h>
@@ -18,7 +18,7 @@
 
 #include "cm6.h"
 
-#define VERSION "1.8"
+#define VERSION "1.9"
 #define PACKAGE "gse2mseed"
 
 static void packtraces (flag flush);
@@ -311,12 +311,21 @@ gse2group (char *gsefile, MSTraceGroup *mstg)
 	  expectdata = 1;
 	}
       
-      else if ( ! strncmp ("CHK2", line, 4) )
+      else if ( ! strncmp ("CHK2 ", line, 5) )
 	{
 	  if ( linesize < 6 )
 	    {
 	      fprintf (stderr, "[%s] %s %s: CHK2 line is too short, only %d characters:\n%s\n",
 		       gsefile, msr->station, msr->channel, linesize, line);
+	      retval = -1;
+	      break;
+	    }
+	  
+	  /* Test that data was actually expected */
+	  if ( ! expectdata )
+	    {
+	      fprintf (stderr, "[%s] %s %s: CHK2 was found but no DAT2 line indicated the start of data\n",
+		       gsefile, msr->station, msr->channel);
 	      retval = -1;
 	      break;
 	    }

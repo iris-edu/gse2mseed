@@ -1,8 +1,9 @@
 2009.208: 1.9
 	- Update libmseed to 2.3.
-	- Improve parsing header lines to avoid confusion with data
-	lines that might include the same characters as reported by
-	Roman Racine.
+	- Make parsing of CHK2 lines more strict by requiring the "CHK2"
+	characters to be followed by a space charater to avoid confusion 
+       	with data lines that include CHK2 at the beginning of a line.
+	Report and suggested fix by by Roman Racine.
 
 2008.220: 1.8
         - Update libmseed to 2.1.6, including much improved Steim 1
