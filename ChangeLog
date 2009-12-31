@@ -1,3 +1,7 @@
+2009.365:
+	- Always include Blockette 1001 in output Mini-SEED in order to
+	retain time stamps with microsecond precision.
+
 2009.208: 1.9
 	- Update libmseed to 2.3.
 	- Make parsing of CHK2 lines more strict by requiring the "CHK2"

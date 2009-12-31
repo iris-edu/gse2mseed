@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center
  *
- * modified 2009.208
+ * modified 2009.365
  ***************************************************************************/
 
 #include <stdio.h>
@@ -18,7 +18,7 @@
 
 #include "cm6.h"
 
-#define VERSION "1.9"
+#define VERSION "1.10dev"
 #define PACKAGE "gse2mseed"
 
 static void packtraces (flag flush);
@@ -125,8 +125,11 @@ static void
 packtraces (flag flush)
 {
   MSTrace *mst;
+  MSRecord *msr = NULL;
   int trpackedsamples = 0;
   int trpackedrecords = 0;
+  struct blkt_1000_s Blkt1000;
+  struct blkt_1001_s Blkt1001;
   
   mst = mstg->traces;
   while ( mst )
@@ -137,8 +140,22 @@ packtraces (flag flush)
           continue;
         }
       
+      /* Initialize MSRecord template for packing */
+      msr = msr_init(msr);
+      strncpy (msr->network, mst->network, sizeof(msr->network));
+      strncpy (msr->station, mst->station, sizeof(msr->station));
+      strncpy (msr->location, mst->location, sizeof(msr->location));
+      strncpy (msr->channel, mst->channel, sizeof(msr->channel));
+      
+      /* Add blockettes 1000 & 1001 to template */
+      memset (&Blkt1000, 0, sizeof(struct blkt_1000_s));
+      msr_addblockette (msr, (char *) &Blkt1000, sizeof(struct blkt_1001_s), 1000, 0);
+      memset (&Blkt1001, 0, sizeof(struct blkt_1001_s));
+      msr_addblockette (msr, (char *) &Blkt1001, sizeof(struct blkt_1001_s), 1001, 0);
+      
       trpackedrecords = mst_pack (mst, &record_handler, 0, packreclen, encoding, byteorder,
-                                  &trpackedsamples, flush, verbose-2, NULL);
+                                  &trpackedsamples, flush, verbose-2, msr);
+      
       if ( trpackedrecords < 0 )
         {
           fprintf (stderr, "Error packing data\n");
@@ -151,6 +168,8 @@ packtraces (flag flush)
       
       mst = mst->next;
     }
+  
+  msr_free (&msr);
 }  /* End of packtraces() */
 
 
