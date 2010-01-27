@@ -1,5 +1,5 @@
-2010.006 
-	- Update to libmseed 2.4dev, which includes a fix for correctly
+2010.026: 1.10
+	- Update to libmseed 2.4, which includes a fix for correctly
 	updating the microsecond offset in Blockette 1001 and a fix for
 	accumulation of error in the time stamp when packing very larger
 	continous data series.

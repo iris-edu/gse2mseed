@@ -6,7 +6,7 @@
  * Written by Chad Trabant unless otherwise noted
  *   IRIS Data Management Center
  *
- * modified: 2010.004
+ * modified: 2010.015
  ***************************************************************************/
 
 #include <stdio.h>
@@ -21,125 +21,103 @@ static int ms_globmatch (char *string, char *pattern);
 
 
 /***************************************************************************
- * ms_freeselections:
+ * ms_matchselect:
  *
- * Free all memory associated with a Selections struct.
+ * Test the specified parameters for a matching selection entry.  The
+ * srcname parameter may contain globbing characters.  The NULL value
+ * (matching any times) for the start and end times is HPTERROR.
+ *
+ * Return Selections pointer to matching entry on successful match and
+ * NULL for no match or error.
  ***************************************************************************/
-void
-ms_freeselections ( Selections *selections )
+Selections *
+ms_matchselect (Selections *selections, char *srcname, hptime_t starttime,
+		hptime_t endtime, SelectTime **ppselecttime)
 {
-  Selections *select;
-  Selections *selectnext;
-  SelectTime *selecttime;
-  SelectTime *selecttimenext;
+  Selections *findsl = NULL;
+  SelectTime *findst = NULL;
+  SelectTime *matchst = NULL;
   
   if ( selections )
     {
-      select = selections;
-      
-      while ( select )
+      findsl = selections;
+      while ( findsl )
 	{
-	  selectnext = select->next;
-	  
-	  selecttime = select->timewindows;
-	  
-	  while ( selecttime )
+	  if ( ms_globmatch (srcname, findsl->srcname) )
 	    {
-	      selecttimenext = selecttime->next;
-	      
-	      free (selecttime);
-	      
-	      selecttime = selecttimenext;
+	      findst = findsl->timewindows;              
+	      while ( findst )
+		{
+		  if ( starttime != HPTERROR && findst->starttime != HPTERROR &&
+		       (starttime < findst->starttime && ! (starttime <= findst->starttime && endtime >= findst->starttime)) )
+		    { findst = findst->next; continue; }
+		  else if ( endtime != HPTERROR && findst->endtime != HPTERROR &&
+			    (endtime > findst->endtime && ! (starttime <= findst->endtime && endtime >= findst->endtime)) )
+		    { findst = findst->next; continue; }
+		  
+		  matchst = findst;
+		  break;
+		}
 	    }
 	  
-	  free (select);
-	  
-	  select = selectnext;
+	  if ( matchst )
+	    break;
+	  else
+	    findsl = findsl->next;
 	}
     }
+  
+  if ( ppselecttime )
+    *ppselecttime = matchst;
+  
+  return ( matchst ) ? findsl : NULL;
+} /* End of ms_matchselect() */
 
-} /* End of ms_freeselections() */
+
+/***************************************************************************
+ * msr_matchselect:
+ *
+ * A simple wrapper for calling ms_matchselect() using details from a
+ * MSRecord struct.
+ *
+ * Return Selections pointer to matching entry on successful match and
+ * NULL for no match or error.
+ ***************************************************************************/
+Selections *
+msr_matchselect (Selections *selections, MSRecord *msr, SelectTime **ppselecttime)
+{
+  char srcname[50];
+  hptime_t endtime;
+  
+  if ( ! selections || ! msr )
+    return NULL;
+  
+  msr_srcname (msr, srcname, 1);
+  endtime = msr_endtime (msr);
+  
+  return ms_matchselect (selections, srcname, msr->starttime, endtime,
+			 ppselecttime);
+} /* End of msr_matchselect() */
 
 
 /***************************************************************************
  * ms_addselect:
  *
- * Add select parameters to a specified selection list.  The network,
- * station, location, channel and quality parameters may contain
- * globbing parameters.  The NULL value (matching any value) for the
- * start and end times is HPTERROR.
- *
- * If any of the naming parameters are not supplied (pointer is NULL)
- * a wildcard for all matches is substituted.  As a special case, if
- * the location ID (loc) is set to "--" to match a space-space/blank
- * ID it will be translated to an empty string to match libmseed's
- * notation.
+ * Add select parameters to a specified selection list.  The srcname
+ * argument may contain globbing parameters.  The NULL value (matching
+ * any value) for the start and end times is HPTERROR.
  *
  * Return 0 on success and -1 on error.
  ***************************************************************************/
 int
-ms_addselect (Selections **ppselections, char *net, char* sta, char *loc,
-	      char *chan, char *qual, hptime_t starttime, hptime_t endtime)
+ms_addselect (Selections **ppselections, char *srcname,
+	      hptime_t starttime, hptime_t endtime)
 {
   Selections *newsl = NULL;
   SelectTime *newst = NULL;
-  char srcname[100];
-  char selnet[20];
-  char selsta[20];
-  char selloc[20];
-  char selchan[20];
-  char selqual[20];
   
-  if ( ! ppselections )
+  if ( ! ppselections || ! srcname )
     return -1;
-  
-  if ( net )
-    {
-      strncpy (selnet, net, sizeof(selnet));
-      selnet[sizeof(selnet)-1] = '\0';
-    }
-  else
-    strcpy (selnet, "*");
-  
-  if ( sta )
-    {
-      strncpy (selsta, sta, sizeof(selsta));
-      selsta[sizeof(selsta)-1] = '\0';
-    }
-  else
-    strcpy (selsta, "*");
-  
-  if ( loc )
-    {
-      /* Test for special case blank location ID */
-      if ( ! strcmp (loc, "--") )
-	selloc[0] = '\0';
-      
-      strncpy (selloc, loc, sizeof(selloc));
-      selloc[sizeof(selloc)-1] = '\0';
-    }
-  else
-    strcpy (selloc, "*");
-  
-  if ( chan )
-    {
-      strncpy (selchan, chan, sizeof(selchan));
-      selchan[sizeof(selchan)-1] = '\0';
-    }
-  else
-    strcpy (selchan, "*");
-  
-  if ( qual )
-    {
-      strncpy (selqual, qual, sizeof(selqual));
-      selqual[sizeof(selqual)-1] = '\0';
-    }
-  else
-    strcpy (selqual, "?");
-  
-  /* Create the srcname globbing match for this entry */
-  snprintf (srcname, sizeof(srcname), "%s_%s_%s_%s_%s",
-	    selnet, selsta, selloc, selchan, selqual);
   
   /* Allocate new SelectTime and populate */
   if ( ! (newst = (SelectTime *) calloc (1, sizeof(SelectTime))) )
@@ -213,79 +191,91 @@ ms_addselect (Selections **ppselections, char *net, char* sta, char *loc,
 
 
 /***************************************************************************
- * ms_matchselect:
+ * ms_addselect_comp:
  *
- * Test the specified parameters for a matching selection entry.  The
- * srcname parameter may contain globbing characters.  The NULL value
- * (matching any times) for the start and end times is HPTERROR.
+ * Add select parameters to a specified selection list based on
+ * separate name components.  The network, station, location, channel
+ * and quality arguments may contain globbing parameters.  The NULL
+ * value (matching any value) for the start and end times is HPTERROR.
  *
- * Return Selections pointer to matching entry on successful match and
- * NULL for no match or error.
+ * If any of the naming parameters are not supplied (pointer is NULL)
+ * a wildcard for all matches is substituted.  As a special case, if
+ * the location ID (loc) is set to "--" to match a space-space/blank
+ * ID it will be translated to an empty string to match libmseed's
+ * notation.
+ *
+ * Return 0 on success and -1 on error.
  ***************************************************************************/
-Selections *
-ms_matchselect (Selections *selections, char *srcname, hptime_t starttime,
-		hptime_t endtime)
+int
+ms_addselect_comp (Selections **ppselections, char *net, char* sta, char *loc,
+		   char *chan, char *qual, hptime_t starttime, hptime_t endtime)
 {
-  Selections *findsl = NULL;
-  SelectTime *findst = NULL;
-  SelectTime *matchst = NULL;
+  char srcname[100];
+  char selnet[20];
+  char selsta[20];
+  char selloc[20];
+  char selchan[20];
+  char selqual[20];
   
-  if ( selections )
+  if ( ! ppselections )
+    return -1;
+  
+  if ( net )
     {
-      findsl = selections;
-      while ( findsl )
+      strncpy (selnet, net, sizeof(selnet));
+      selnet[sizeof(selnet)-1] = '\0';
+    }
+  else
+    strcpy (selnet, "*");
+  
+  if ( sta )
+    {
+      strncpy (selsta, sta, sizeof(selsta));
+      selsta[sizeof(selsta)-1] = '\0';
+    }
+  else
+    strcpy (selsta, "*");
+  
+  if ( loc )
+    {
+      /* Test for special case blank location ID */
+      if ( ! strcmp (loc, "--") )
+	selloc[0] = '\0';
+      else
 	{
-	  if ( ms_globmatch (srcname, findsl->srcname) )
-	    {
-	      findst = findsl->timewindows;              
-	      while ( findst )
-		{
-		  if ( starttime != HPTERROR && findst->starttime != HPTERROR &&
-		       (starttime < findst->starttime && ! (starttime <= findst->starttime && endtime >= findst->starttime)) )
-		    { findst = findst->next; continue; }
-		  else if ( endtime != HPTERROR && findst->endtime != HPTERROR &&
-			    (endtime > findst->endtime && ! (starttime <= findst->endtime && endtime >= findst->endtime)) )
-		    { findst = findst->next; continue; }
-		  
-		  matchst = findst;
-		  break;
-		}
-	    }
-	  
-	  if ( matchst )
-	    break;
-	  else
-	    findsl = findsl->next;
+	  strncpy (selloc, loc, sizeof(selloc));
+	  selloc[sizeof(selloc)-1] = '\0';
 	}
     }
+  else
+    strcpy (selloc, "*");
   
-  return ( matchst ) ? findsl : NULL;
-} /* End of ms_matchselect() */
-
-
-/***************************************************************************
- * msr_matchselect:
- *
- * A simple wrapper for calling ms_matchselect() using details from a
- * MSRecord struct.
- *
- * Return Selections pointer to matching entry on successful match and
- * NULL for no match or error.
- ***************************************************************************/
-Selections *
-msr_matchselect (Selections *selections, MSRecord *msr)
-{
-  char srcname[50];
-  hptime_t endtime;
+  if ( chan )
+    {
+      strncpy (selchan, chan, sizeof(selchan));
+      selchan[sizeof(selchan)-1] = '\0';
+    }
+  else
+    strcpy (selchan, "*");
   
-  if ( ! selections || ! msr )
-    return NULL;
+  if ( qual )
+    {
+      strncpy (selqual, qual, sizeof(selqual));
+      selqual[sizeof(selqual)-1] = '\0';
+    }
+  else
+    strcpy (selqual, "?");
   
-  msr_srcname (msr, srcname, 1);
-  endtime = msr_endtime (msr);
+  /* Create the srcname globbing match for this entry */
+  snprintf (srcname, sizeof(srcname), "%s_%s_%s_%s_%s",
+	    selnet, selsta, selloc, selchan, selqual);
   
-  return ms_matchselect (selections, srcname, msr->starttime, endtime);
-} /* End of msr_matchselect() */
+  /* Add selection to list */
+  if ( ms_addselect (ppselections, srcname, starttime, endtime) )
+    return -1;
+  
+  return 0;
+} /* End of ms_addselect_comp() */
 
 
 /***************************************************************************
@@ -407,7 +397,7 @@ ms_readselectionsfile (Selections **ppselections, char *filename)
 	}
       
       /* Add selection to list */
-      if ( ms_addselect (ppselections, selnet, selsta, selloc, selchan, selqual, starttime, endtime) )
+      if ( ms_addselect_comp (ppselections, selnet, selsta, selloc, selchan, selqual, starttime, endtime) )
 	{
 	  ms_log (2, "[%s] Error adding selection on line %d\n", filename, linecount);
 	  return -1;
@@ -420,6 +410,47 @@ ms_readselectionsfile (Selections **ppselections, char *filename)
   
   return selectcount;
 } /* End of ms_readselectionsfile() */
+
+
+/***************************************************************************
+ * ms_freeselections:
+ *
+ * Free all memory associated with a Selections struct.
+ ***************************************************************************/
+void
+ms_freeselections ( Selections *selections )
+{
+  Selections *select;
+  Selections *selectnext;
+  SelectTime *selecttime;
+  SelectTime *selecttimenext;
+  
+  if ( selections )
+    {
+      select = selections;
+      
+      while ( select )
+	{
+	  selectnext = select->next;
+	  
+	  selecttime = select->timewindows;
+	  
+	  while ( selecttime )
+	    {
+	      selecttimenext = selecttime->next;
+	      
+	      free (selecttime);
+	      
+	      selecttime = selecttimenext;
+	    }
+	  
+	  free (select);
+	  
+	  select = selectnext;
+	}
+    }
+
+} /* End of ms_freeselections() */
 
 
 /***************************************************************************
@@ -456,7 +487,7 @@ ms_printselections ( Selections *selections )
 	  else
 	    strncpy (endtime, "No end time", sizeof(endtime-1));
 	  
-	  ms_log (0, "  %30s  %30s", starttime, endtime);
+	  ms_log (0, "  %30s  %30s\n", starttime, endtime);
 	  
 	  selecttime = selecttime->next;
 	}
@@ -492,6 +523,24 @@ ms_printselections ( Selections *selections )
  *	a[-a-z]c	a-c aac abc ...
  *
  * $Log: not supported by cvs2svn $
+ * Revision 1.10  2010/01/15 18:15:49  chad
+ * *** empty log message ***
+ *
+ * Revision 1.9  2010/01/15 18:12:35  chad
+ * *** empty log message ***
+ *
+ * Revision 1.8  2010/01/15 17:44:10  chad
+ * *** empty log message ***
+ *
+ * Revision 1.7  2010/01/15 17:42:54  chad
+ * *** empty log message ***
+ *
+ * Revision 1.6  2010/01/09 00:37:53  chad
+ * *** empty log message ***
+ *
+ * Revision 1.5  2010/01/07 23:55:18  chad
+ * *** empty log message ***
+ *
  * Revision 1.4  2010/01/07 06:01:30  chad
  * *** empty log message ***
  *
