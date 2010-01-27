@@ -1,4 +1,4 @@
-.TH GSE2MSEED 1 2005/10/06
+.TH GSE2MSEED 1 2010/01/26
 .SH NAME
 GSE 2.x or IMS 1.0 INT and CM6 waveform data to Mini-SEED converter
 
@@ -33,7 +33,7 @@ Be more verbose.  This flag can be used multiple times ("-v -v" or
 
 .IP "-i         "
 Ignore GSE checksum mismatch errors, a warning message is printed but
-processing continue.
+processing continues.
 
 .IP "-B         "
 Buffer all input data into memory before packing it into Mini-SEED
@@ -42,17 +42,14 @@ the data.  By default the program will flush it's data buffers after
 each input block is read.  An output file must be specified with the
 -o option when using this option.
 
-.IP "-a         "
-Map GSE auxiliary id code to SEED location id code.
-
 .IP "-n \fInetcode\fP"
 Specify the SEED network code to use, if not specified the network
 code will be blank.  It is highly recommended to specify a network
 code.
 
 .IP "-l \fIloccode\fP"
-Specify the SEED location code to use, if not specified the location
-code will be blank.
+Specify the SEED location ID to use, if not specified the GSE
+auxiluarly idenficiation code will be used.
 
 .IP "-r \fIbytes\fP"
 Specify the Mini-SEED record length in \fIbytes\fP, default is 4096.

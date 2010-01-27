@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center
  *
- * modified 2009.365
+ * modified 2010.026
  ***************************************************************************/
 
 #include <stdio.h>
@@ -18,7 +18,7 @@
 
 #include "cm6.h"
 
-#define VERSION "1.10dev"
+#define VERSION "1.10"
 #define PACKAGE "gse2mseed"
 
 static void packtraces (flag flush);
@@ -33,7 +33,6 @@ static void usage (void);
 static int   verbose     = 0;
 static int   ignorecs    = 0;
 static char  bufferall   = 0;
-static int   auxtoloc    = 0;
 static char *forcenet    = 0;
 static char *forceloc    = 0;
 static int   packreclen  = -1;
@@ -267,15 +266,12 @@ gse2group (char *gsefile, MSTraceGroup *mstg)
 	  
 	  ms_strncpclean (msr->network, forcenet, 2);
 	  ms_strncpclean (msr->station, line + 29, 5);
+	  ms_strncpclean (msr->location, line + 39, 2);
 	  ms_strncpclean (msr->channel, line + 35, 3);
 	  
 	  if ( forceloc )
 	    {
 	      ms_strncpclean (msr->location, forceloc, 2);
-	    }	      
-	  else if ( auxtoloc )
-	    {
-	      ms_strncpclean (msr->location, line + 39, 2);
 	    }
 	  
 	  if ( ! strncmp (line + 44, "CM6", 3) )
@@ -505,7 +501,7 @@ gse2group (char *gsefile, MSTraceGroup *mstg)
 	    {
 	      fprintf (stderr, "[%s] %d samps @ %.6f Hz for N: '%s', S: '%s', L: '%s', C: '%s'\n",
 		       gsefile, msr->numsamples, msr->samprate,
-		       msr->network, msr->station,  msr->location, msr->channel);
+		       msr->network, msr->station, msr->location, msr->channel);
 	    }
 	  
 	  if ( ! mst_addmsrtogroup (mstg, msr, 0, -1.0, -1.0) )
@@ -588,10 +584,6 @@ parameter_proc (int argcount, char **argvec)
       else if (strcmp (argvec[optind], "-B") == 0)
 	{
 	  bufferall = 1;
-	}
-      else if (strcmp (argvec[optind], "-a") == 0)
-	{
-	  auxtoloc = 1;
 	}
       else if (strcmp (argvec[optind], "-n") == 0)
 	{
@@ -876,9 +868,8 @@ usage (void)
 	   " -v             Be more verbose, multiple flags can be used\n"
 	   " -i             Ignore GSE checksum mismatch, warn but continue\n"
 	   " -B             Buffer data before packing, default packs at end of each block\n"
-	   " -a             Map GSE auxiliary id code to SEED location id code\n"
 	   " -n netcode     Specify the SEED network code\n"
-	   " -l loccode     Specify the SEED location code\n"
+	   " -l locid       Specify the SEED location ID\n"
 	   " -r bytes       Specify record length in bytes for packing, default: 4096\n"
 	   " -e encoding    Specify SEED encoding format for packing, default: 11 (Steim2)\n"
 	   " -b byteorder   Specify byte order for packing, MSBF: 1 (default), LSBF: 0\n"

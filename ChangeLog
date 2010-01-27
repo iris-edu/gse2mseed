@@ -5,6 +5,7 @@
 	continous data series.
 	- Map GSE auxiliarly identification code to the SEED location ID
 	by default and remove the -a option.
+	- Update documentation regarding SEED location ID.
 
 2009.365:
 	- Always include Blockette 1001 in output Mini-SEED in order to
