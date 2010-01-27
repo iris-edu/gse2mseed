@@ -3,6 +3,8 @@
 	updating the microsecond offset in Blockette 1001 and a fix for
 	accumulation of error in the time stamp when packing very larger
 	continous data series.
+	- Map GSE auxiliarly identification code to the SEED location ID
+	by default and remove the -a option.
 
 2009.365:
 	- Always include Blockette 1001 in output Mini-SEED in order to
