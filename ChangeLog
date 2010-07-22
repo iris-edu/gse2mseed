@@ -45,7 +45,7 @@
 	files with ".mseed" suffix, replacing ".gse" if it's there.
 	- Pack Traces at the end of each block, add option to buffer all
 	data and only pack at the end.
-	- flose() each input file when done reading it.
+	- fclose() each input file when done reading it.
 	- Add man page.
 
 2005.272: 1.3
