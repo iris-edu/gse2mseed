@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center
  *
- * modified 2010.026
+ * modified 2010.293
  ***************************************************************************/
 
 #include <stdio.h>
@@ -18,7 +18,7 @@
 
 #include "cm6.h"
 
-#define VERSION "1.10"
+#define VERSION "1.11"
 #define PACKAGE "gse2mseed"
 
 static void packtraces (flag flush);
@@ -75,7 +75,7 @@ main (int argc, char **argv)
         {
           ofp = stdout;
         }
-      else if ( (ofp = fopen (outputfile, "w")) == NULL )
+      else if ( (ofp = fopen (outputfile, "wb")) == NULL )
         {
           fprintf (stderr, "Cannot open output file: %s (%s)\n",
                    outputfile, strerror(errno));

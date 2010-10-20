@@ -1,3 +1,6 @@
+2010.293: 1.11
+	- Open specified output file in binary mode, fix for Win32.
+
 2010.026: 1.10
 	- Update to libmseed 2.4, which includes a fix for correctly
 	updating the microsecond offset in Blockette 1001 and a fix for
