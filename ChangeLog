@@ -1,4 +1,5 @@
 2010.293: 1.11
+	- Update libmseed to 2.5.1.
 	- Open specified output file in binary mode, fix for Win32.
 
 2010.026: 1.10
