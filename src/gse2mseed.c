@@ -453,7 +453,7 @@ gse2group (char *gsefile, MSTraceGroup *mstg)
 	      cm6bufsize += datalinesize;
 	    }
 	  
-	  /* Process INT data, one ASCII integer per line is expected */
+	  /* Process INT data, one to many ASCII integer(s) per line are possible */
 	  if ( format == 2 )
 	    {
 	      tptr = &line[0];
