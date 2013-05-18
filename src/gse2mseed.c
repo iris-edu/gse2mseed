@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center
  *
- * modified 2010.293
+ * modified 2013.138
  ***************************************************************************/
 
 #include <stdio.h>
@@ -18,7 +18,7 @@
 
 #include "cm6.h"
 
-#define VERSION "1.11"
+#define VERSION "1.12"
 #define PACKAGE "gse2mseed"
 
 static void packtraces (flag flush);
@@ -125,8 +125,8 @@ packtraces (flag flush)
 {
   MSTrace *mst;
   MSRecord *msr = NULL;
-  int trpackedsamples = 0;
-  int trpackedrecords = 0;
+  int64_t trpackedsamples = 0;
+  int64_t trpackedrecords = 0;
   struct blkt_1000_s Blkt1000;
   struct blkt_1001_s Blkt1001;
   
@@ -200,9 +200,9 @@ gse2group (char *gsefile, MSTraceGroup *mstg)
   int format = 0;  /* 1 = CM6, 2 = INT */
   
   char *cm6buf = 0;
-  int cm6bufsize = 0;
+  int cm6bufsize = 0;   /* Number of characters in cm6buf */
   int32_t *intbuf = 0;
-  int32_t intbufsize = 0;
+  int intbufcount = 0;  /* Number of 32-bit integers in intbuf */
   
   /* Open input file */
   if ( (ifp = fopen (gsefile, "r")) == NULL )
@@ -352,7 +352,7 @@ gse2group (char *gsefile, MSTraceGroup *mstg)
 	  /* Unpack CM6 */
 	  if ( format == 1 )
 	    {
-	      if ( (intbuf = unpackcm6 (cm6buf, cm6bufsize, intbuf, &intbufsize, -1, 2)) == NULL )
+	      if ( (intbuf = unpackcm6 (cm6buf, cm6bufsize, intbuf, &intbufcount, -1, 2)) == NULL )
 		{
 		  fprintf (stderr, "[%s] %s %s: Error unpacking CM6 compressed data\n",
 			   gsefile, msr->station, msr->channel);
@@ -361,11 +361,12 @@ gse2group (char *gsefile, MSTraceGroup *mstg)
 		}
 	    }
 	  
-	  if ( msr->samplecnt != intbufsize )
+	  if ( msr->samplecnt != intbufcount )
 	    {
-	      fprintf (stderr, "[%s] %s %s: Unpacked %d of %d samples!\n",
-		       gsefile, msr->station, msr->channel, intbufsize, msr->samplecnt);
-	      msr->samplecnt = intbufsize;
+	      fprintf (stderr, "[%s] %s %s: Unpacked %d of %lld samples!\n",
+		       gsefile, msr->station, msr->channel, intbufcount,
+		       (long long int) msr->samplecnt);
+	      msr->samplecnt = intbufcount;
 	    }
 	  
 	  if ( verbose >= 3 )
@@ -375,7 +376,7 @@ gse2group (char *gsefile, MSTraceGroup *mstg)
 	      fprintf (stderr, "[%s] %s %s: First 6 samples:\n",
 		       gsefile, msr->station, msr->channel);
 	      
-	      for ( tint = 0; tint < 6; tint++ )
+	      for ( tint = 0; tint < 6 && tint < msr->samplecnt; tint++ )
 		{
 		  fprintf (stderr, "%10d ", *(intbuf+tint));
 		}
@@ -383,7 +384,7 @@ gse2group (char *gsefile, MSTraceGroup *mstg)
 	    }
 	  
 	  /* Compute chksum and compare */
-	  cchksum = gsechksum (intbuf, intbufsize);
+	  cchksum = gsechksum (intbuf, intbufcount);
 	  
 	  if ( ochksum != cchksum )
 	    {
@@ -457,8 +458,8 @@ gse2group (char *gsefile, MSTraceGroup *mstg)
 	    {
 	      tptr = &line[0];
 	      
-	      /* Remove leading space character(s) */
-	      while ( *tptr == ' ' )
+	      /* Skip leading space character(s) */
+	      while ( isspace (*tptr) )
 		{
 		  tptr++;
 		  datalinesize--;
@@ -471,36 +472,46 @@ gse2group (char *gsefile, MSTraceGroup *mstg)
 		}
 	      
 	      /* (Re)Allocate intbuf if needed */
-	      if ( intbufsize == 0 )
+	      if ( intbufcount == 0 )
 		{
 		  intbuf = realloc (intbuf, sizeof(int32_t) * msr->samplecnt);
 		}
 	      
-	      if ( (intbufsize+1) > msr->samplecnt )
+	      if ( (intbufcount+1) > msr->samplecnt )
 		{
-		  fprintf (stderr, "[%s] %s %s: More than %d INT samples found in input file\n",
-			   gsefile, msr->station, msr->channel, msr->samplecnt);
+		  fprintf (stderr, "[%s] %s %s: More than %lld INT samples found in input file\n",
+			   gsefile, msr->station, msr->channel,
+			   (long long int) msr->samplecnt);
 		  retval = -1;
 		  break;
 		}
 	      
-	      *(intbuf + intbufsize) = (int32_t) strtol (tptr, NULL, 10);
-	      
-	      intbufsize++;
+	      while ( *tptr )
+		{
+		  *(intbuf + intbufcount) = (int32_t) strtol (tptr, NULL, 10);
+		  
+		  intbufcount++;
+		  
+		  /* Skip to next space character and then to next non-space character */
+		  while ( *tptr && ! isspace (*tptr) )
+		    tptr++;
+		  while ( *tptr && isspace (*tptr) )
+		    tptr++;
+		}
 	    }
 	}
-
+      
       if ( blockend )
 	{
 	  /* Add data to MSTraceGroup */
 	  msr->datasamples = intbuf;
-	  msr->numsamples = intbufsize;
+	  msr->numsamples = intbufcount;
 	  msr->sampletype = 'i';
 	  
 	  if ( verbose >= 1 )
 	    {
-	      fprintf (stderr, "[%s] %d samps @ %.6f Hz for N: '%s', S: '%s', L: '%s', C: '%s'\n",
-		       gsefile, msr->numsamples, msr->samprate,
+	      fprintf (stderr, "[%s] %lld samps @ %.6f Hz for N: '%s', S: '%s', L: '%s', C: '%s'\n",
+		       gsefile, (long long int) msr->numsamples, msr->samprate,
 		       msr->network, msr->station, msr->location, msr->channel);
 	    }
 	  
@@ -522,7 +533,7 @@ gse2group (char *gsefile, MSTraceGroup *mstg)
 	  msr = msr_init (msr);
 
 	  cm6bufsize = 0;
-	  intbufsize = 0;
+	  intbufcount = 0;
 	  ochksum = 0;
 	  blockend = 0;
 	}
