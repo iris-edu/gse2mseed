@@ -1,3 +1,6 @@
+2017.093:
+	- 
+
 2013.138: 1.12
 	- Update libmseed to 2.11, change counters to match library.
 	- Allow more than one sample per line for INT data format, thanks
