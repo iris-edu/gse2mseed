@@ -1,4 +1,4 @@
-2017.093:
+2017.093: 1.13
 	- Update libmseed to 2.19.3.
 	- Remove dependency on ntwin32.mak for Windows nmake makefiles, now
 	building works in plain MSVC development environments.
