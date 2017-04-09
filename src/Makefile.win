@@ -5,7 +5,7 @@
 NODEBUG=1
 
 INCS = /I..\libmseed
-OPTS = -D_CRT_SECURE_NO_WARNINGS -DNOFDZIP
+OPTS = -D_CRT_SECURE_NO_WARNINGS
 LIBS = ..\libmseed\libmseed.lib
 
 BIN = ..\gse2mseed.exe
